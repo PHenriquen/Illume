@@ -1,0 +1,112 @@
+@media(max-width:980px) {
+  body {
+    overflow:auto
+  }
+  .shell {
+    padding:0 18px
+  }
+  .workspace {
+    grid-template-columns:1fr
+  }
+  .telemetry {
+    display:none
+  }
+  .core-zone {
+    min-height:520px
+  }
+  .conversation {
+    height:420px;
+    margin-bottom:30px
+  }
+  .statusbar span:last-child {
+    display:none
+  }
+}
+@media(max-width:540px) {
+  .system-state {
+    display:none
+  }
+  .shell {
+    padding:0 12px
+  }
+  .core-wrap {
+    width:92vw
+  }
+  .controls {
+    flex-direction:column;
+    width:85%
+  }
+  .workspace {
+    gap:0
+  }
+  .statusbar span:nth-child(2) {
+    display:none
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  *,*:before,*:after {
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important
+  }
+}
+.compact-root body {
+  overflow:hidden!important
+}
+.compact-root ::-webkit-scrollbar {
+  display:none!important
+}
+.top-actions .text-button.muted {
+  color:#f2b86b;
+  border:1px solid rgba(242,184,107,.25);
+  border-radius:12px;
+  padding:5px 8px
+}
+.compact-root.orb-only .compact-card {
+  display:none!important
+}
+.compact-root.orb-only .compact-overlay {
+  inset:0!important;
+  display:grid!important;
+  place-items:center!important;
+  filter:none
+}
+.compact-root.orb-only .compact-orb {
+  margin:0
+}
+.compact-root.chat-open .compact-card {
+  display:block
+}
+.core-wrap:before {
+  content:"";
+  position:absolute;
+  inset:6%;
+  border-radius:50%;
+  background:repeating-conic-gradient(from 17deg,rgba(91,216,255,.32) 0 1deg,transparent 1deg 7deg);
+  mask:radial-gradient(transparent 62%,#000 63% 65%,transparent 66%);
+  animation:spin 55s linear infinite;
+  opacity:.5
+}
+.core-wrap:after {
+  content:"";
+  position:absolute;
+  inset:27%;
+  border-radius:50%;
+  border:1px solid rgba(112,226,255,.12);
+  box-shadow:0 0 38px rgba(50,157,255,.12),inset 0 0 28px rgba(82,203,255,.08);
+  animation:breathe 5s ease-in-out infinite
+}
+.core-glow:before,.core-glow:after {
+  content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:48%;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(93,223,255,.55),transparent);
+  transform:translate(-50%,-50%) rotate(28deg);
+  box-shadow:0 0 8px #48bfff
+}
+.core-glow:after {
+  transform:translate(-50%,-50%) rotate(-28deg);
+  opacity:.55
+}

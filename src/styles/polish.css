@@ -1,0 +1,311 @@
+/* TRACE 1.0 — acabamento de produto */
+.dashboard-root .topbar {
+  position:relative;
+  background:linear-gradient(180deg,rgba(8,18,31,.3),transparent);
+  backdrop-filter:blur(18px)
+}
+.dashboard-root .topbar:after {
+  content:"";
+  position:absolute;
+  left:18%;
+  right:18%;
+  bottom:-1px;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(98,217,255,.48),transparent);
+  opacity:.45
+}
+.dashboard-root .core-zone:after {
+  content:"";
+  position:absolute;
+  left:50%;
+  top:47%;
+  width:min(62vw,760px);
+  aspect-ratio:1.8;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:repeating-radial-gradient(circle,transparent 0 38px,rgba(91,194,255,.028) 39px 40px);
+  mask-image:radial-gradient(ellipse,#000 0 36%,transparent 72%);
+  pointer-events:none;
+  animation:traceField 12s ease-in-out infinite
+}
+.dashboard-root .core-wrap {
+  transition:filter .35s cubic-bezier(.2,.8,.2,1),transform .35s cubic-bezier(.2,.8,.2,1)
+}
+.dashboard-root .core-label {
+  filter:drop-shadow(0 0 10px rgba(103,221,255,.32))
+}
+.dashboard-root .core-readouts {
+  padding:7px 14px;
+  border:1px solid rgba(131,218,255,.08);
+  border-radius:16px;
+  background:rgba(3,11,20,.2);
+  backdrop-filter:blur(10px)
+}
+.dashboard-root .conversation {
+  overflow:hidden
+}
+.dashboard-root .conversation:after {
+  display:block;
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  padding:1px;
+  background:linear-gradient(125deg,rgba(190,241,255,.2),transparent 28%,transparent 70%,rgba(73,121,255,.14));
+  mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  mask-composite:exclude;
+  pointer-events:none
+}
+.dashboard-root .message {
+  animation:messageArrive .22s ease-out both
+}
+.message.streaming p:after {
+  content:"";
+  display:inline-block;
+  width:5px;
+  height:11px;
+  margin-left:4px;
+  vertical-align:-1px;
+  border-radius:3px;
+  background:#7de6ff;
+  box-shadow:0 0 10px rgba(86,214,255,.7);
+  animation:streamCursor .75s steps(1) infinite
+}
+.compact-orb:after {
+  content:"";
+  position:absolute;
+  inset:-35%;
+  border-radius:50%;
+  background:conic-gradient(transparent 0 28%,rgba(139,235,255,.2) 35%,transparent 42% 70%,rgba(91,112,255,.18) 78%,transparent 86%);
+  animation:spin 6s linear infinite;
+  mix-blend-mode:screen;
+  pointer-events:none
+}
+.compact-overlay.listening .compact-orb {
+  box-shadow:0 0 0 5px rgba(67,184,255,.1),0 0 34px rgba(80,215,255,.62),inset 0 0 18px #164c91
+}
+.settings-tabs {
+  scrollbar-width:none
+}
+.settings-tabs button {
+  min-height:48px
+}
+@keyframes messageArrive {
+  from {
+    opacity:0;
+    transform:translateY(5px)
+  }
+  to {
+    opacity:1;
+    transform:none
+  }
+}
+@keyframes streamCursor {
+  50% {
+    opacity:.2
+  }
+}
+@keyframes traceField {
+  50% {
+    opacity:.65;
+    transform:translate(-50%,-50%) scale(1.025)
+  }
+}
+/* TRACE 1.0.1 — Liquid Glass funcional, profundidade e movimento fluido */
+:root {
+  --pointer-x:50%;
+  --pointer-y:50%;
+  --glass-fill:rgba(8,18,31,.42);
+  --glass-deep:rgba(2,8,16,.58);
+  --glass-line:rgba(207,241,255,.14);
+  --glass-highlight:rgba(235,250,255,.16);
+  --glass-shadow:0 26px 80px rgba(0,2,10,.34),inset 0 1px rgba(255,255,255,.09),inset 0 -1px rgba(66,137,194,.08)
+}
+.dashboard-root body:before {
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:1;
+  pointer-events:none;
+  background:radial-gradient(420px circle at var(--pointer-x) var(--pointer-y),rgba(72,176,255,.055),transparent 68%);
+  transition:background .12s linear
+}
+.dashboard-root .topbar {
+  background:linear-gradient(180deg,rgba(11,24,39,.42),rgba(5,12,22,.12));
+  -webkit-backdrop-filter:blur(24px) saturate(145%);
+  backdrop-filter:blur(24px) saturate(145%)
+}
+.dashboard-root .conversation,.settings-dialog {
+  border-color:var(--glass-line);
+  background:linear-gradient(145deg,rgba(17,31,48,.52),rgba(4,12,23,.34) 58%,rgba(15,31,52,.29));
+  -webkit-backdrop-filter:blur(34px) saturate(150%);
+  backdrop-filter:blur(34px) saturate(150%);
+  box-shadow:var(--glass-shadow)
+}
+.dashboard-root .conversation:before {
+  display:block;
+  content:"";
+  position:absolute;
+  inset:-1px;
+  border-radius:inherit;
+  pointer-events:none;
+  background:radial-gradient(520px circle at var(--pointer-x) var(--pointer-y),rgba(205,242,255,.11),transparent 52%),linear-gradient(115deg,rgba(255,255,255,.055),transparent 24% 74%,rgba(69,143,255,.045));
+  mix-blend-mode:screen;
+  opacity:.85
+}
+.dashboard-root .conversation>* {
+  position:relative;
+  z-index:1
+}
+.dashboard-root .prompt-form,#compact-form,.notification-button,.core-readouts {
+  background:linear-gradient(145deg,rgba(20,42,61,.34),rgba(2,10,19,.36));
+  border-color:rgba(216,244,255,.13);
+  -webkit-backdrop-filter:blur(22px) saturate(140%);
+  backdrop-filter:blur(22px) saturate(140%);
+  box-shadow:inset 0 1px rgba(255,255,255,.075),0 10px 32px rgba(0,3,10,.16)
+}
+.dashboard-root .core-zone:before {
+  background:radial-gradient(ellipse at 48% 44%,rgba(88,216,255,.2),rgba(48,93,255,.095) 31%,rgba(7,41,82,.045) 55%,transparent 75%);
+  filter:blur(15px);
+  animation:liquidAura 8s ease-in-out infinite
+}
+.dashboard-root .core-wrap {
+  filter:drop-shadow(0 0 38px rgba(49,160,255,.19)) drop-shadow(0 24px 50px rgba(0,7,22,.26))
+}
+.dashboard-root .core-glow {
+  background:radial-gradient(circle at 43% 36%,#fff 0 1.5%,#bef8ff 3.5%,rgba(61,214,255,.92) 7%,rgba(35,130,255,.52) 17%,rgba(67,77,255,.22) 36%,rgba(7,25,66,.08) 58%,transparent 73%);
+  box-shadow:0 0 56px rgba(71,201,255,.3),0 0 130px rgba(52,82,255,.16),inset 0 0 25px rgba(235,253,255,.12)
+}
+.primary-button,.secondary-button,.text-button,.notification-button,.settings-tabs button,#compact-form button,.compact-suggestions button {
+  transition:transform .2s cubic-bezier(.2,.8,.2,1),filter .2s,background .2s,border-color .2s,box-shadow .2s
+}
+.primary-button:hover,.secondary-button:hover,.notification-button:hover,.settings-tabs button:hover {
+  transform:translateY(-1px);
+  filter:brightness(1.12);
+  box-shadow:0 10px 30px rgba(0,10,28,.2),inset 0 1px rgba(255,255,255,.1)
+}
+.primary-button:active,.secondary-button:active,.notification-button:active,.settings-tabs button:active,#compact-form button:active {
+  transform:scale(.97);
+  transition-duration:.08s
+}
+.settings-dialog::backdrop {
+  background:rgba(0,4,10,.62);
+  -webkit-backdrop-filter:blur(14px) saturate(115%);
+  backdrop-filter:blur(14px) saturate(115%)
+}
+.settings-dialog .model-setup,.permission-stack .toggle-row,.detected-app-list {
+  background:linear-gradient(145deg,rgba(18,37,54,.24),rgba(1,7,14,.3));
+  border-color:rgba(210,241,255,.09);
+  box-shadow:inset 0 1px rgba(255,255,255,.035)
+}
+.clap-calibration {
+  position:relative;
+  overflow:hidden
+}
+.clap-calibration:after {
+  content:"";
+  position:absolute;
+  left:-35%;
+  top:-120%;
+  width:42%;
+  height:340%;
+  transform:rotate(18deg);
+  background:linear-gradient(90deg,transparent,rgba(189,240,255,.075),transparent);
+  animation:glassSweep 8s ease-in-out infinite;
+  pointer-events:none
+}
+.compact-card p,#compact-form {
+  background:linear-gradient(145deg,rgba(13,30,46,.52),rgba(2,10,19,.5));
+  border-color:rgba(209,242,255,.16);
+  -webkit-backdrop-filter:blur(26px) saturate(150%);
+  backdrop-filter:blur(26px) saturate(150%);
+  box-shadow:0 18px 42px rgba(0,3,12,.28),inset 0 1px rgba(255,255,255,.09)
+}
+.compact-orb {
+  box-shadow:0 0 0 1px rgba(221,251,255,.3),0 0 0 5px rgba(49,166,255,.07),0 0 28px rgba(55,198,255,.48),0 18px 42px rgba(0,4,17,.38),inset 0 2px 13px rgba(237,254,255,.28),inset 0 -12px 20px rgba(5,19,70,.5)
+}
+.compact-orb:before {
+  content:"";
+  position:absolute;
+  z-index:5;
+  left:18%;
+  right:24%;
+  top:11%;
+  height:27%;
+  border-radius:50%;
+  background:linear-gradient(180deg,rgba(255,255,255,.48),rgba(178,242,255,.04));
+  filter:blur(.2px);
+  opacity:.68;
+  pointer-events:none
+}
+.compact-root.orb-entering .compact-orb {
+  animation:orbMaterialize .48s cubic-bezier(.18,.86,.24,1.18) both
+}
+.compact-root.chat-entering .compact-card {
+  animation:glassUnfold .34s cubic-bezier(.2,.84,.24,1) both;
+  transform-origin:100% 85%
+}
+.compact-root.surface-leaving .compact-orb {
+  animation:orbDematerialize .2s ease-in both
+}
+.compact-root.surface-leaving .compact-card {
+  animation:glassFold .18s ease-in both;
+  transform-origin:100% 85%
+}
+@keyframes orbMaterialize {
+  0% {
+    opacity:0;
+    transform:scale(.2) rotate(-24deg);
+    filter:blur(9px) brightness(2)
+  }
+  58% {
+    opacity:1;
+    transform:scale(1.09) rotate(2deg);
+    filter:blur(0) brightness(1.3)
+  }
+  100% {
+    transform:scale(1);
+    filter:brightness(1)
+  }
+}
+@keyframes orbDematerialize {
+  to {
+    opacity:0;
+    transform:scale(.36) rotate(14deg);
+    filter:blur(6px) brightness(1.8)
+  }
+}
+@keyframes glassUnfold {
+  from {
+    opacity:0;
+    transform:translate(24px,12px) scale(.82);
+    filter:blur(8px)
+  }
+  to {
+    opacity:1;
+    transform:none;
+    filter:none
+  }
+}
+@keyframes glassFold {
+  to {
+    opacity:0;
+    transform:translate(18px,9px) scale(.88);
+    filter:blur(5px)
+  }
+}
+@keyframes glassSweep {
+  0%,72% {
+    transform:translateX(-120%) rotate(18deg)
+  }
+  90%,100% {
+    transform:translateX(420%) rotate(18deg)
+  }
+}
+@keyframes liquidAura {
+  50% {
+    opacity:.78;
+    transform:translate(-50%,-50%) scale(1.035);
+    filter:blur(18px)
+  }
+}

@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <meta content="#03060b" name="theme-color"/>
+  <title>
+   TRACE AI
+  </title>
+ </head>
+ <body data-view="full">
+  <canvas aria-hidden="true" id="particle-field">
+  </canvas>
+  <main class="shell">
+   <header class="topbar">
+    <div class="brand">
+     <span aria-hidden="true" class="brand-mark">
+     </span>
+     <div>
+      <strong>
+       TRACE
+      </strong>
+      <small>
+       ASSISTANT CORE
+      </small>
+     </div>
+    </div>
+    <div class="system-state">
+     <i>
+     </i>
+     <span id="connection-label">
+      INICIANDO SISTEMA LOCAL
+     </span>
+    </div>
+    <div class="top-actions">
+     <button class="text-button" id="screen-context-button" title="Permissão para compreender a tela atual">
+      TELA DESATIVADA
+     </button>
+     <button aria-label="Notificações" class="notification-button" id="notification-button">
+      ALERTAS
+      <i id="notification-count">
+       3
+      </i>
+     </button>
+     <button class="text-button" id="voice-mode-button">
+      VOZ ATIVA
+     </button>
+     <button class="text-button" id="compact-button">
+      MODO COMPACTO
+     </button>
+     <button aria-label="Configurações" class="icon-button" id="settings-button">
+      ⋮
+     </button>
+    </div>
+   </header>
+   <section class="workspace">
+    <aside class="telemetry panel">
+     <p class="eyebrow">
+      SISTEMA
+     </p>
+     <div class="metric">
+      <span>
+       IA
+      </span>
+      <strong id="model-name">
+       Verificando…
+      </strong>
+     </div>
+     <div class="metric">
+      <span>
+       PROCESSAMENTO
+      </span>
+      <strong>
+       LOCAL
+      </strong>
+     </div>
+     <div class="metric">
+      <span>
+       MEMÓRIA
+      </span>
+      <strong id="memory-count">
+       0 registros
+      </strong>
+     </div>
+     <div class="metric">
+      <span>
+       PERFIL
+      </span>
+      <strong>
+       ECONÔMICO
+      </strong>
+     </div>
+     <div class="metric microphone-metric">
+      <span>
+       MICROFONE AMBIENTE
+      </span>
+      <div aria-hidden="true" class="microphone-level">
+       <i id="mic-level-bar">
+       </i>
+      </div>
+      <strong id="mic-status">
+       INICIANDO
+      </strong>
+     </div>
+     <button class="setup-button" hidden="" id="install-model-button">
+      INSTALAR IA LOCAL
+     </button>
+     <div class="line">
+     </div>
+     <nav aria-label="Centrais do TRACE" class="capability-nav">
+      <button data-section="approval">
+       <i>
+        01
+       </i>
+       <span>
+        APROVAÇÕES
+        <small id="approval-summary">
+         PADRÃO
+        </small>
+       </span>
+      </button>
+      <button data-section="storage">
+       <i>
+        02
+       </i>
+       <span>
+        ARMAZENAMENTO
+        <small>
+         LOCAL
+        </small>
+       </span>
+      </button>
+      <button data-section="voice">
+       <i>
+        03
+       </i>
+       <span>
+        VOZ E ESCUTA
+        <small>
+         ATIVA
+        </small>
+       </span>
+      </button>
+      <button data-section="extensions">
+       <i>
+        04
+       </i>
+       <span>
+        EXTENSÕES
+        <small>
+         3 MÓDULOS
+        </small>
+       </span>
+      </button>
+     </nav>
+     <div class="line">
+     </div>
+     <p class="privacy">
+      <i>
+      </i>
+      Seus dados permanecem neste dispositivo.
+     </p>
+    </aside>
+    <section aria-label="Núcleo visual do TRACE" class="core-zone">
+     <div class="core-wrap" id="core-wrap">
+      <div class="scan-ring">
+       <b>
+       </b>
+       <b>
+       </b>
+       <b>
+       </b>
+       <b>
+       </b>
+      </div>
+      <div class="orbit orbit-one">
+      </div>
+      <div class="orbit orbit-two">
+      </div>
+      <div class="orbit orbit-three">
+      </div>
+      <div class="core-glow">
+      </div>
+      <div class="core-label">
+       <small aria-hidden="true" id="core-kicker">
+        TRACE CORE
+       </small>
+       <strong id="core-status">
+        PRONTO
+       </strong>
+       <span aria-hidden="true" aria-label="TRACE processando" class="processing-indicator" id="processing-indicator">
+        <i>
+        </i>
+        <i>
+        </i>
+        <i>
+        </i>
+        <i>
+        </i>
+        <i>
+        </i>
+        <i>
+        </i>
+        <i>
+        </i>
+        <i>
+        </i>
+        <i>
+        </i>
+        <i>
+        </i>
+       </span>
+      </div>
+      <div class="signal-arc signal-left">
+      </div>
+      <div class="signal-arc signal-right">
+      </div>
+     </div>
+     <div class="core-readouts">
+      <span>
+       <i>
+       </i>
+       ESCUTA LOCAL
+      </span>
+      <span>
+       LATÊNCIA
+       <b id="latency-readout">
+        --
+       </b>
+      </span>
+      <span>
+       PRIVACIDADE ATIVA
+      </span>
+     </div>
+     <p class="live-caption" id="live-caption">
+      Preparando escuta ambiente…
+     </p>
+     <div class="controls">
+      <button class="primary-button" id="activate-button">
+       <span class="mic-dot">
+       </span>
+       FALAR
+      </button>
+      <button class="secondary-button" id="ambient-button">
+       ATIVAR AMBIENTE
+      </button>
+      <button class="secondary-button" id="demo-button">
+       DEMONSTRAR ESTADOS
+      </button>
+     </div>
+    </section>
+    <aside class="conversation panel">
+     <div class="panel-heading">
+      <div>
+       <p class="eyebrow">
+        CONVERSA
+       </p>
+       <h2>
+        Agora
+       </h2>
+      </div>
+      <button class="text-button" id="clear-button">
+       Limpar
+      </button>
+     </div>
+     <div aria-live="polite" class="messages" id="messages">
+      <div class="message trace">
+       <span>
+        T
+       </span>
+       <p>
+        Bom dia. Sistemas locais preparados. Como posso ajudar?
+       </p>
+      </div>
+     </div>
+     <div aria-live="polite" class="attachment-list" id="attachment-list">
+     </div>
+     <div aria-label="Ações sugeridas" class="suggestion-strip" id="suggestion-strip">
+     </div>
+     <form class="prompt-form" id="prompt-form">
+      <button aria-label="Anexar arquivo" class="attach-button" id="attach-button" type="button">
+       ＋
+      </button>
+      <input aria-label="Comando para o TRACE" autocomplete="off" id="prompt-input" placeholder="Digite um comando…"/>
+      <button aria-label="Enviar comando" type="submit">
+       ↑
+      </button>
+     </form>
+    </aside>
+   </section>
+   <footer class="statusbar">
+    <span>
+     <i class="status-dot">
+     </i>
+     TRACE 1.0.2 LIVING CORE
+    </span>
+    <span id="clock">
+    </span>
+    <span>
+     PRIVACIDADE LOCAL ATIVA
+    </span>
+   </footer>
+  </main>
+  <dialog class="settings-dialog" id="settings-dialog">
+   <form class="settings-card" method="dialog">
+    <div class="panel-heading settings-heading">
+     <div>
+      <p class="eyebrow">
+       CONFIGURAÇÕES
+      </p>
+      <h2>
+       Preferências do TRACE
+      </h2>
+     </div>
+     <button class="icon-button" value="cancel">
+      ×
+     </button>
+    </div>
+    <div class="settings-layout">
+     <nav aria-label="Categorias das configurações" class="settings-tabs">
+      <button aria-selected="true" data-settings-tab="general" type="button">
+       <i>
+        ◇
+       </i>
+       <span>
+        Geral
+        <small>
+         IA e aparência
+        </small>
+       </span>
+      </button>
+      <button data-settings-tab="voice" type="button">
+       <i>
+        ◉
+       </i>
+       <span>
+        Voz
+        <small>
+         Escuta e resposta
+        </small>
+       </span>
+      </button>
+      <button data-settings-tab="permissions" type="button">
+       <i>
+        ⌾
+       </i>
+       <span>
+        Privacidade
+        <small>
+         Acessos e aprovação
+        </small>
+       </span>
+      </button>
+      <button data-settings-tab="apps" type="button">
+       <i>
+        ＋
+       </i>
+       <span>
+        Aplicativos
+        <small>
+         Apps e rotinas
+        </small>
+       </span>
+      </button>
+      <button data-settings-tab="system" type="button">
+       <i>
+        ⌁
+       </i>
+       <span>
+        Sistema
+        <small>
+         Inicialização e suporte
+        </small>
+       </span>
+      </button>
+     </nav>
+     <div class="settings-pages">
+      <section class="settings-page" data-settings-page="general">
+       <div class="settings-section-title">
+        <p class="eyebrow">
+         GERAL
+        </p>
+        <h3>
+         Inteligência e aparência
+        </h3>
+       </div>
+       <label>
+        Modelo local
+        <input id="model-input" readonly="" value="qwen3.5:2b-q4_K_M"/>
+       </label>
+       <label>
+        Perfil de inteligência
+        <select id="intelligence-profile">
+         <option value="fast">
+          Rápido e leve
+         </option>
+         <option selected="" value="balanced">
+          Equilibrado
+         </option>
+         <option value="coding">
+          Programação e arquivos
+         </option>
+        </select>
+        <small>
+         O perfil de programação reserva mais contexto somente quando necessário.
+        </small>
+       </label>
+       <div class="model-setup">
+        <span id="model-setup-status">
+         Verificando inteligência local…
+        </span>
+        <button class="secondary-button" id="settings-install-button" type="button">
+         INSTALAR QWEN 3.5 2B
+        </button>
+        <small>
+         O modelo continua totalmente local e sem cobrança de tokens.
+        </small>
+       </div>
+       <label class="toggle-row">
+        <span>
+         Animações aprimoradas
+         <small>
+          Desative se desejar o menor consumo visual possível.
+         </small>
+        </span>
+        <input checked="" id="intensity-toggle" type="checkbox"/>
+       </label>
+       <div class="settings-grid-two">
+        <label>
+         Como devo chamar você
+         <input id="user-name" maxlength="40" placeholder="Ex.: Pedro"/>
+        </label>
+        <label>
+         Estilo das respostas
+         <select id="response-style">
+          <option selected="" value="direct">
+           Direto e natural
+          </option>
+          <option value="friendly">
+           Amigável
+          </option>
+          <option value="technical">
+           Técnico
+          </option>
+         </select>
+        </label>
+       </div>
+      </section>
+      <section class="settings-page" data-settings-page="voice" hidden="">
+       <div class="settings-section-title">
+        <p class="eyebrow">
+         VOZ
+        </p>
+        <h3>
+         Escuta e resposta
+        </h3>
+       </div>
+       <div class="model-setup">
+        <span id="voice-setup-status">
+         Verificando motor de voz…
+        </span>
+        <div class="settings-button-row">
+         <button class="secondary-button" id="voice-install-button" type="button">
+          INSTALAR VOZ OFFLINE
+         </button>
+         <button class="secondary-button" id="voice-test-button" type="button">
+          TESTAR VOZ
+         </button>
+        </div>
+        <small>
+         Reconhecimento e fala processados neste computador.
+        </small>
+       </div>
+       <label class="toggle-row">
+        <span>
+         Escuta ambiente
+         <small>
+          Somente frases iniciadas por “Trace” podem gerar um comando.
+         </small>
+        </span>
+        <input checked="" id="ambient-toggle" type="checkbox"/>
+       </label>
+       <label class="toggle-row">
+        <span>
+         Responder com voz
+         <small>
+          Desative rapidamente durante vídeos e jogos.
+         </small>
+        </span>
+        <input checked="" id="voice-toggle" type="checkbox"/>
+       </label>
+       <label>
+        Comportamento
+        <select id="response-mode">
+         <option selected="" value="smart">
+          Acompanhar entrada — voz com voz, texto com texto
+         </option>
+         <option value="always">
+          Sempre responder com voz
+         </option>
+         <option value="silent">
+          Sempre responder em silêncio
+         </option>
+        </select>
+       </label>
+       <label>
+        Voz do assistente
+        <select id="voice-profile">
+         <option selected="" value="female">
+          Feminina natural — melhor disponível
+         </option>
+         <option value="female-local">
+          Feminina do Windows — somente offline
+         </option>
+         <option value="local">
+          Local econômica
+         </option>
+         <option value="silent">
+          Sem voz
+         </option>
+        </select>
+       </label>
+       <label>
+        Voz feminina encontrada
+        <select id="system-voice-choice">
+         <option selected="" value="auto">
+          Automática — priorizar voz Natural
+         </option>
+        </select>
+        <small id="selected-voice-status">
+         Procurando vozes brasileiras no Windows…
+        </small>
+       </label>
+       <label>
+        Sensibilidade do microfone
+        <input id="sensitivity-range" max="160" min="75" type="range" value="125"/>
+       </label>
+       <label class="toggle-row">
+        <span>
+         Ativação por duas palmas — experimental
+         <small>
+          Desligada por padrão para evitar ativações causadas por teclado, vídeos e ruídos.
+         </small>
+        </span>
+        <input id="clap-toggle" type="checkbox"/>
+       </label>
+       <div class="model-setup clap-calibration" hidden="" id="clap-calibration-panel">
+        <span>
+         Calibração das palmas
+        </span>
+        <div class="settings-button-row">
+         <button class="secondary-button" id="clap-calibration-button" type="button">
+          CALIBRAR DUAS PALMAS
+         </button>
+         <button class="secondary-button" id="clap-reset-button" type="button">
+          USAR AUTOMÁTICO
+         </button>
+        </div>
+        <small id="clap-calibration-status">
+         Recurso experimental: calibre para o seu microfone antes de usar.
+        </small>
+       </div>
+       <label class="toggle-row">
+        <span>
+         Interromper resposta com a voz
+         <small>
+          Comece a falar para parar a voz do TRACE e dar outro comando.
+         </small>
+        </span>
+        <input checked="" id="barge-in-toggle" type="checkbox"/>
+       </label>
+       <label class="toggle-row">
+        <span>
+         Manter conversa compacta aberta
+         <small>
+          O chat permanece até você fechá-lo.
+         </small>
+        </span>
+        <input checked="" id="keep-compact-toggle" type="checkbox"/>
+       </label>
+      </section>
+      <section class="settings-page" data-settings-page="permissions" hidden="">
+       <div class="settings-section-title">
+        <p class="eyebrow">
+         PRIVACIDADE
+        </p>
+        <h3>
+         Permissões e aprovações
+        </h3>
+       </div>
+       <label>
+        Modo de aprovação
+        <select id="approval-mode">
+         <option value="standard">
+          Aprovações padrão
+         </option>
+         <option value="always">
+          Sempre perguntar
+         </option>
+         <option value="autopilot">
+          Autopilot local
+         </option>
+        </select>
+        <small id="approval-description">
+         O TRACE usa suas permissões e confirma ações sensíveis.
+        </small>
+       </label>
+       <div class="permission-stack">
+        <label class="toggle-row">
+         <span>
+          Ler arquivos selecionados
+          <small>
+           Somente os arquivos que você anexar.
+          </small>
+         </span>
+         <input checked="" id="permission-files" type="checkbox"/>
+        </label>
+        <label class="toggle-row">
+         <span>
+          Analisar imagens selecionadas
+          <small>
+           Usa a visão local do Qwen.
+          </small>
+         </span>
+         <input checked="" id="permission-images" type="checkbox"/>
+        </label>
+        <label class="toggle-row">
+         <span>
+          Compreender a tela atual
+          <small>
+           Captura apenas quando o pedido mencionar a tela.
+          </small>
+         </span>
+         <input id="permission-screen" type="checkbox"/>
+        </label>
+        <label class="toggle-row">
+         <span>
+          Salvar e editar arquivos
+          <small>
+           Você sempre escolhe e confirma o destino.
+          </small>
+         </span>
+         <input id="permission-edits" type="checkbox"/>
+        </label>
+       </div>
+       <p class="settings-note">
+        Seus dados, conversas, áudio e anexos permanecem neste dispositivo.
+       </p>
+      </section>
+      <section class="settings-page" data-settings-page="apps" hidden="">
+       <div class="settings-section-title">
+        <p class="eyebrow">
+         APLICATIVOS
+        </p>
+        <h3>
+         Programas e rotinas autorizadas
+        </h3>
+       </div>
+       <label class="toggle-row">
+        <span>
+         Abrir aplicativos permitidos
+         <small>
+          O TRACE só abre programas marcados abaixo.
+         </small>
+        </span>
+        <input id="permission-apps" type="checkbox"/>
+       </label>
+       <div class="model-setup app-permissions">
+        <span>
+         Aplicativos detectados
+        </span>
+        <div class="app-search-row">
+         <input id="app-search" placeholder="Filtrar aplicativos…" type="search"/>
+         <button class="secondary-button" id="rescan-apps-button" type="button">
+          ATUALIZAR
+         </button>
+        </div>
+        <div class="detected-app-list" id="detected-app-list">
+         <small>
+          Procurando aplicativos do Windows…
+         </small>
+        </div>
+        <button class="secondary-button" id="authorize-app-button" type="button">
+         ADICIONAR OUTRO…
+        </button>
+        <small>
+         Marque somente os programas que o TRACE poderá abrir.
+        </small>
+       </div>
+       <div class="model-setup routine-builder">
+        <span>
+         Rotinas pessoais
+        </span>
+        <div class="app-search-row">
+         <input id="routine-name" maxlength="40" placeholder="Ex.: Modo estudo"/>
+         <button class="secondary-button" id="save-routine-button" type="button">
+          CRIAR
+         </button>
+        </div>
+        <div class="routine-app-list" id="routine-app-list">
+         <small>
+          Autorize aplicativos acima para montar uma rotina.
+         </small>
+        </div>
+        <div class="saved-routine-list" id="saved-routine-list">
+        </div>
+        <small>
+         Uma rotina abre apenas aplicativos já autorizados.
+        </small>
+       </div>
+      </section>
+      <section class="settings-page" data-settings-page="system" hidden="">
+       <div class="settings-section-title">
+        <p class="eyebrow">
+         SISTEMA
+        </p>
+        <h3>
+         Inicialização, atualizações e suporte
+        </h3>
+       </div>
+       <label class="toggle-row">
+        <span>
+         Iniciar com o Windows
+         <small>
+          Mantém a palavra-chave “Acorde, Trace” disponível depois de entrar no computador.
+         </small>
+        </span>
+        <input id="startup-toggle" type="checkbox"/>
+       </label>
+       <div class="model-setup">
+        <span>
+         TRACE 1.0 · canal estável local
+        </span>
+        <small>
+         Atualizações são instaladas somente após sua autorização. A assinatura digital depende do certificado de distribuição.
+        </small>
+       </div>
+       <div class="model-setup">
+        <span>
+         Diagnóstico e suporte
+        </span>
+        <button class="secondary-button" id="diagnostic-button" type="button">
+         GERAR RELATÓRIO TÉCNICO
+        </button>
+        <small>
+         Cria um arquivo local sem conversas, nomes de arquivos ou lista de aplicativos.
+        </small>
+       </div>
+      </section>
+     </div>
+    </div>
+    <footer class="settings-footer">
+     <p class="settings-note">
+      Alterações são salvas somente neste dispositivo.
+     </p>
+     <button class="primary-button" id="save-settings" value="default">
+      SALVAR ALTERAÇÕES
+     </button>
+    </footer>
+   </form>
+  </dialog>
+  <dialog class="notification-dialog" id="notification-dialog">
+   <form class="settings-card" method="dialog">
+    <div class="panel-heading">
+     <div>
+      <p class="eyebrow">
+       CENTRAL
+      </p>
+      <h2>
+       Notificações
+      </h2>
+     </div>
+     <button class="icon-button" value="cancel">
+      ×
+     </button>
+    </div>
+    <div class="notification-list" id="notification-list">
+     <article>
+      <i class="notice-dot success">
+      </i>
+      <div>
+       <strong>
+        Núcleo local pronto
+       </strong>
+       <p>
+        Qwen, memória e recursos do dispositivo estão disponíveis.
+       </p>
+      </div>
+      <time>
+       AGORA
+      </time>
+     </article>
+     <article>
+      <i class="notice-dot info">
+      </i>
+      <div>
+       <strong>
+        Novo fluxo de conversa
+       </strong>
+       <p>
+        “Acorde, Trace” mostra a esfera e inicia a escuta. Um clique abre o campo de texto; palmas são opcionais e experimentais.
+       </p>
+      </div>
+      <time>
+       NOVO
+      </time>
+     </article>
+     <article>
+      <i class="notice-dot info">
+      </i>
+      <div>
+       <strong>
+        Contexto local disponível
+       </strong>
+       <p>
+        Use Alt + Espaço em qualquer programa ou permita que o TRACE compreenda somente a tela solicitada.
+       </p>
+      </div>
+      <time>
+       NOVO
+      </time>
+     </article>
+    </div>
+    <button class="secondary-button" id="clear-notifications" value="default">
+     MARCAR COMO LIDAS
+    </button>
+   </form>
+  </dialog>
+  <section aria-live="polite" class="compact-overlay" id="compact-overlay">
+   <div class="compact-card">
+    <div>
+     <small id="compact-kicker">
+      TRACE
+     </small>
+     <strong id="compact-status">
+      PRONTO
+     </strong>
+    </div>
+    <p id="compact-caption">
+     Diga “Acorde, Trace” para começar
+    </p>
+    <div aria-label="Última troca da conversa" class="compact-history" id="compact-history">
+     <span id="compact-last-user">
+     </span>
+     <span id="compact-last-trace">
+     </span>
+    </div>
+    <div aria-label="Ações sugeridas" class="compact-suggestions" id="compact-suggestions">
+    </div>
+    <form id="compact-form">
+     <input id="compact-input" placeholder="Digite ou fale…"/>
+     <button>
+      ↑
+     </button>
+    </form>
+   </div>
+   <button aria-label="Abrir chat compacto" class="compact-orb" id="expand-button">
+    <span aria-hidden="true" class="orb-ribbons">
+     <b>
+     </b>
+     <b>
+     </b>
+     <b>
+     </b>
+     <b>
+     </b>
+    </span>
+    <span aria-hidden="true" class="orb-processing">
+     <i>
+     </i>
+     <i>
+     </i>
+     <i>
+     </i>
+     <i>
+     </i>
+     <i>
+     </i>
+     <i>
+     </i>
+     <i>
+     </i>
+     <i>
+     </i>
+    </span>
+    <span aria-hidden="true" class="voice-meter">
+     <b>
+     </b>
+     <b>
+     </b>
+     <b>
+     </b>
+     <b>
+     </b>
+     <b>
+     </b>
+    </span>
+   </button>
+  </section>
+  <script src="/src/main.ts" type="module">
+  </script>
+ </body>
+</html>
+

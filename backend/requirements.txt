@@ -1,0 +1,2 @@
+# O núcleo base usa apenas a biblioteca padrão do Python.
+# Voz, OCR e documentos são componentes locais opcionais instalados sob demanda.

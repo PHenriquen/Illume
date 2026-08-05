@@ -1,0 +1,26 @@
+{
+  "format": 1,
+  "product": "TRACE AI",
+  "version": "1.0.2",
+  "defaultModel": "qwen3.5:2b-q4_K_M",
+  "runtimeDataDirectory": "%LOCALAPPDATA%\\TRACE-AI",
+  "ollamaModelsDirectory": "%USERPROFILE%\\.ollama\\models",
+  "components": [
+    "Ollama",
+    "Qwen local model",
+    "Whisper.cpp",
+    "Whisper Large V3 Turbo Q5",
+    "Piper TTS",
+    "pt-BR Faber voice",
+    "PDF/DOCX/OCR runtime",
+    "SQLite memory"
+  ],
+  "backupFormat": 2,
+  "backupIncludesWhenAvailable": [
+    "portable application",
+    "Python runtime",
+    "Ollama runtime",
+    "Ollama models",
+    "TRACE runtime data"
+  ]
+}

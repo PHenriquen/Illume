@@ -1,0 +1,45 @@
+# Node / frontend
+node_modules/
+dist/
+release/
+coverage/
+*.tsbuildinfo
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# TRACE local runtime data
+.trace-data/
+*.db
+*.db-shm
+*.db-wal
+voice/
+tts/
+documents/
+
+# Environment and logs
+.env
+.env.*
+!.env.example
+*.log
+npm-debug.log*
+
+# IDE / operating system
+.vscode/settings.json
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Full offline backups (multi-gigabyte local artifacts)
+TRACE-AI-Backup-*/
+backup-output/
+runtime-data/
+ollama-models/
+runtime-programs/
+application/

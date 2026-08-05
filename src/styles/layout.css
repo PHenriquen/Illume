@@ -1,0 +1,370 @@
+/* v0.50 — painel central e vidro leve */
+.dashboard-root .workspace {
+  grid-template-columns:1fr;
+  grid-template-rows:minmax(360px,54vh) minmax(235px,30vh);
+  gap:0;
+  align-items:center;
+  justify-items:center;
+  padding:8px 0 14px;
+  min-height:0
+}
+.dashboard-root .telemetry {
+  display:none
+}
+.dashboard-root .core-zone {
+  grid-column:1;
+  grid-row:1;
+  width:100%;
+  height:100%;
+  min-height:0;
+  position:relative;
+  justify-content:center;
+  padding-top:10px
+}
+.dashboard-root .core-zone:before {
+  content:"";
+  position:absolute;
+  width:min(72vw,920px);
+  height:min(48vh,520px);
+  left:50%;
+  top:49%;
+  transform:translate(-50%,-50%);
+  background:radial-gradient(ellipse,rgba(23,108,189,.18),rgba(7,41,82,.08) 43%,transparent 72%);
+  filter:blur(12px);
+  pointer-events:none
+}
+.dashboard-root .core-wrap {
+  width:min(35vw,41vh,450px);
+  filter:drop-shadow(0 0 32px rgba(49,160,255,.15));
+  isolation:isolate
+}
+.dashboard-root .core-glow {
+  width:47%;
+  background:radial-gradient(circle at 48% 45%,#f3fdff 0 1.5%,rgba(134,240,255,.95) 4%,rgba(42,174,255,.55) 11%,rgba(50,97,255,.23) 32%,rgba(10,34,78,.08) 55%,transparent 72%);
+  box-shadow:0 0 46px rgba(49,172,255,.24),0 0 110px rgba(37,94,255,.12);
+  position:relative
+}
+.dashboard-root .core-wrap:before {
+  opacity:.72;
+  filter:drop-shadow(0 0 5px rgba(78,210,255,.25))
+}
+.dashboard-root .core-wrap:after {
+  inset:24%;
+  border-color:rgba(142,235,255,.2);
+  box-shadow:0 0 50px rgba(50,157,255,.17),inset 0 0 38px rgba(82,203,255,.1)
+}
+.dashboard-root .orbit-one {
+  border-color:rgba(113,224,255,.38)
+}
+.dashboard-root .orbit-two {
+  border-color:rgba(83,125,255,.25)
+}
+.dashboard-root .orbit-three {
+  border-color:rgba(83,192,255,.14);
+  box-shadow:0 0 42px rgba(40,145,255,.06)
+}
+.dashboard-root .scan-ring {
+  filter:drop-shadow(0 0 5px rgba(73,208,255,.22))
+}
+.dashboard-root .core-readouts {
+  margin-top:-28px;
+  margin-bottom:13px
+}
+.dashboard-root .live-caption {
+  margin:0 0 13px
+}
+.dashboard-root .conversation {
+  grid-column:1;
+  grid-row:2;
+  width:min(900px,82vw);
+  height:min(30vh,300px);
+  z-index:4;
+  padding:18px 20px 16px;
+  border:1px solid rgba(224,245,255,.12);
+  border-radius:26px;
+  background:linear-gradient(145deg,rgba(13,23,36,.48),rgba(5,13,23,.3));
+  -webkit-backdrop-filter:blur(28px) saturate(135%);
+  backdrop-filter:blur(28px) saturate(135%);
+  box-shadow:inset 0 1px rgba(255,255,255,.09),0 24px 70px rgba(0,0,0,.25),0 0 40px rgba(42,141,219,.05);
+  grid-template-rows:auto 1fr auto auto
+}
+.dashboard-root .conversation:before,.dashboard-root .conversation:after {
+  display:none
+}
+.dashboard-root .conversation .panel-heading {
+  align-items:center
+}
+.dashboard-root .conversation .panel-heading .eyebrow {
+  margin-bottom:4px;
+  color:rgba(137,220,255,.72)
+}
+.dashboard-root .conversation .panel-heading h2 {
+  font-size:14px;
+  color:rgba(221,242,255,.88)
+}
+.dashboard-root .messages {
+  padding:10px 7px 5px;
+  mask-image:linear-gradient(transparent 0,#000 10px,#000 100%)
+}
+.dashboard-root .message {
+  margin-bottom:9px;
+  align-items:flex-start
+}
+.dashboard-root .message span {
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  border-color:rgba(171,228,255,.2);
+  background:rgba(72,166,220,.08)
+}
+.dashboard-root .message p {
+  font-size:10px;
+  line-height:1.45;
+  color:rgba(194,216,230,.78)
+}
+.dashboard-root .message.user p {
+  color:rgba(224,230,247,.84)
+}
+.dashboard-root .prompt-form {
+  grid-template-columns:34px 1fr 34px;
+  gap:6px;
+  border:1px solid rgba(204,237,255,.1);
+  border-radius:18px;
+  padding:4px;
+  background:rgba(2,9,16,.3);
+  box-shadow:inset 0 1px rgba(255,255,255,.04)
+}
+.dashboard-root .prompt-form input {
+  border:0;
+  background:transparent;
+  padding:8px 5px
+}
+.dashboard-root .prompt-form button {
+  border:0;
+  border-radius:50%;
+  background:rgba(49,151,207,.18)
+}
+.dashboard-root .prompt-form .attach-button {
+  background:transparent
+}
+/* Configuracoes em categorias */
+.settings-dialog {
+  width:min(840px,calc(100vw - 40px));
+  height:min(700px,88vh);
+  max-height:88vh;
+  overflow:hidden;
+  border-radius:24px;
+  background:rgba(7,13,22,.88);
+  -webkit-backdrop-filter:blur(30px) saturate(130%);
+  backdrop-filter:blur(30px) saturate(130%);
+  border-color:rgba(202,237,255,.13);
+  box-shadow:0 36px 120px rgba(0,0,0,.62),inset 0 1px rgba(255,255,255,.06)
+}
+.settings-dialog::backdrop {
+  background:rgba(0,4,10,.7);
+  backdrop-filter:blur(8px)
+}
+.settings-dialog .settings-card {
+  height:100%;
+  padding:0;
+  display:grid;
+  grid-template-rows:76px 1fr 76px;
+  overflow:hidden
+}
+.settings-heading {
+  padding:20px 24px 13px;
+  border-bottom:1px solid rgba(174,224,255,.09)
+}
+.settings-heading .eyebrow {
+  margin-bottom:5px
+}
+.settings-heading h2 {
+  font-size:18px;
+  color:#d9edf8
+}
+.settings-layout {
+  display:grid;
+  grid-template-columns:180px 1fr;
+  min-height:0
+}
+.settings-tabs {
+  padding:18px 12px;
+  border-right:1px solid rgba(174,224,255,.08);
+  display:flex;
+  flex-direction:column;
+  gap:5px
+}
+.settings-tabs button {
+  display:grid;
+  grid-template-columns:28px 1fr;
+  gap:9px;
+  align-items:center;
+  text-align:left;
+  border:0;
+  border-radius:12px;
+  padding:10px;
+  background:transparent;
+  color:#6f8fa2;
+  cursor:pointer;
+  transition:.18s
+}
+.settings-tabs button:hover {
+  background:rgba(115,205,255,.055);
+  color:#a9cddd
+}
+.settings-tabs button[aria-selected="true"] {
+  background:linear-gradient(120deg,rgba(58,160,218,.17),rgba(76,104,214,.1));
+  color:#d3edf9;
+  box-shadow:inset 0 0 0 1px rgba(126,218,255,.11)
+}
+.settings-tabs i {
+  width:28px;
+  height:28px;
+  display:grid;
+  place-items:center;
+  border-radius:9px;
+  background:rgba(77,173,222,.08);
+  color:#71d7f7;
+  font-style:normal
+}
+.settings-tabs span {
+  font-size:10px
+}
+.settings-tabs small {
+  display:block;
+  margin-top:3px;
+  color:#4e6f81;
+  font-size:7px
+}
+.settings-pages {
+  min-width:0;
+  overflow-y:auto;
+  padding:24px 28px 32px;
+  scrollbar-width:thin;
+  scrollbar-color:#23445a transparent
+}
+.settings-page[hidden] {
+  display:none!important
+}
+.settings-section-title {
+  margin-bottom:18px
+}
+.settings-section-title .eyebrow {
+  margin-bottom:6px
+}
+.settings-section-title h3 {
+  margin:0;
+  color:#cce4f1;
+  font-size:17px;
+  font-weight:450
+}
+.settings-dialog .settings-card label {
+  margin:14px 0;
+  gap:7px
+}
+.settings-dialog .settings-card>label {
+  margin:0
+}
+.settings-grid-two {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px
+}
+.settings-button-row {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px
+}
+.permission-stack {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px
+}
+.permission-stack .toggle-row {
+  margin:0!important;
+  padding:12px;
+  border:1px solid rgba(126,205,244,.09);
+  border-radius:13px;
+  background:rgba(2,9,16,.25)
+}
+.settings-dialog .model-setup {
+  border-radius:14px;
+  background:rgba(3,11,19,.35);
+  border-color:rgba(170,224,255,.09)
+}
+.settings-footer {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  padding:14px 24px;
+  border-top:1px solid rgba(174,224,255,.09);
+  background:rgba(1,7,13,.22)
+}
+.settings-footer .settings-note {
+  margin:0
+}
+.settings-footer .primary-button {
+  min-width:170px
+}
+@media(max-width:980px) {
+  .dashboard-root .workspace {
+    grid-template-rows:minmax(330px,52vh) minmax(260px,36vh)
+  }
+  .dashboard-root .conversation {
+    width:min(94vw,820px);
+    height:min(35vh,310px);
+    margin:0
+  }
+  .dashboard-root .core-wrap {
+    width:min(52vw,39vh,410px)
+  }
+  .settings-dialog {
+    height:min(760px,92vh)
+  }
+  .settings-layout {
+    grid-template-columns:135px 1fr
+  }
+  .settings-tabs button {
+    grid-template-columns:22px 1fr;
+    padding:9px 7px
+  }
+  .settings-tabs i {
+    width:22px;
+    height:22px
+  }
+  .permission-stack {
+    grid-template-columns:1fr
+  }
+}
+@media(max-width:620px) {
+  .settings-layout {
+    grid-template-columns:1fr;
+    grid-template-rows:auto 1fr
+  }
+  .settings-tabs {
+    flex-direction:row;
+    overflow-x:auto;
+    border-right:0;
+    border-bottom:1px solid rgba(174,224,255,.08);
+    padding:9px
+  }
+  .settings-tabs button {
+    min-width:115px
+  }
+  .settings-tabs small {
+    display:none
+  }
+  .settings-pages {
+    padding:18px
+  }
+  .settings-grid-two {
+    grid-template-columns:1fr
+  }
+  .dashboard-root .conversation {
+    width:94vw
+  }
+  .dashboard-root .core-wrap {
+    width:min(78vw,390px)
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "name": "trace-ai",
+  "version": "1.0.2",
+  "private": true,
+  "description": "Assistente pessoal local para Windows com IA, voz, memória e automações autorizadas.",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PHenriquen/Tracer-IA.git"
+  },
+  "main": "desktop/main.cjs",
+  "type": "module",
+  "engines": {
+    "node": ">=22",
+    "npm": ">=10"
+  },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test tests/*.test.cjs",
+    "check": "npm run typecheck && npm test",
+    "clean": "node scripts/clean.cjs",
+    "build": "npm run clean && tsc && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "desktop": "electron .",
+    "desktop:package": "npm run build && electron-builder --win --x64 --dir",
+    "desktop:installer": "npm run build && electron-builder --win nsis --x64",
+    "setup:all": "python -m backend.setup --all",
+    "setup:status": "python -m backend.setup --status",
+    "backup:windows": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/windows/powershell/Backup-TraceComplete.ps1"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2",
+    "vite": "^7.0.6",
+    "electron": "^38.0.0",
+    "electron-builder": "^26.0.12"
+  },
+  "allowScripts": {
+    "electron@38.8.6": true,
+    "electron-winstaller@5.4.0": true,
+    "esbuild@0.28.1": true
+  },
+  "build": {
+    "appId": "com.traceai.desktop",
+    "productName": "TRACE",
+    "asar": true,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "desktop/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "backend",
+        "to": "trace-core/backend"
+      },
+      {
+        "from": "dist",
+        "to": "trace-core/dist"
+      },
+      {
+        "from": "native/assets",
+        "to": "trace-core/native/assets"
+      },
+      {
+        "from": "native/wake-listener.ps1",
+        "to": "trace-core/native/wake-listener.ps1"
+      }
+    ],
+    "win": {
+      "icon": "native/assets/trace.ico",
+      "executableName": "TRACE",
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "TRACE-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "TRACE AI",
+      "deleteAppDataOnUninstall": false
+    }
+  }
+}

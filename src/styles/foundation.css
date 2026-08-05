@@ -1,0 +1,310 @@
+:root {
+  color: #eaf3ff;
+  background: #03060b;
+  font-family:"Segoe UI",system-ui,sans-serif;
+  font-synthesis: none;
+  --cyan:#60dbff;
+  --blue:#3f70ff;
+  --panel:rgba(8,17,29,.64);
+}
+:root[data-accent="violet"] {
+  --cyan:#9d87ff;
+  --blue:#7357ff
+}
+:root[data-accent="ice"] {
+  --cyan:#d9f7ff;
+  --blue:#6bb9e8
+}
+html.compact-root,html.compact-root body {
+  width:100%;
+  height:100%;
+  min-width:0!important;
+  min-height:0!important;
+  overflow:hidden!important;
+  background:transparent!important;
+  background-image:none!important;
+  color-scheme:dark
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin:0;
+  min-width:320px;
+  min-height:100vh;
+  overflow:hidden;
+  background:radial-gradient(circle at 50% 50%, #07172c 0, #03070d 38%, #020407 78%);
+}
+#particle-field {
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  z-index:0;
+}
+.noise {
+  display:none!important;
+}
+.shell {
+  position:relative;
+  z-index:2;
+  min-height:100vh;
+  display:grid;
+  grid-template-rows:72px 1fr 42px;
+  padding:0 30px;
+}
+.topbar,.statusbar {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-color:rgba(105,199,255,.13);
+}
+.topbar {
+  border-bottom:1px solid rgba(105,199,255,.13);
+}
+.brand {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  letter-spacing:.2em;
+}
+.brand-mark {
+  width:25px;
+  height:25px;
+  border:1px solid var(--cyan);
+  transform:rotate(45deg);
+  box-shadow:0 0 16px rgba(96,219,255,.5);
+  position:relative;
+}
+.brand-mark:after {
+  content:"";
+  position:absolute;
+  inset:6px;
+  background:var(--cyan);
+  box-shadow:0 0 14px var(--cyan);
+}
+.brand strong {
+  font-family:Consolas,monospace;
+  font-size:15px;
+  display:block;
+}
+.brand small {
+  font:7px Consolas,monospace;
+  color:#6f8ca8;
+  display:block;
+  margin-top:2px;
+}
+.system-state {
+  font:9px Consolas,monospace;
+  letter-spacing:.16em;
+  color:#6b899f;
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+.system-state i,.status-dot {
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#55efbd;
+  box-shadow:0 0 10px #55efbd;
+}
+.icon-button,.text-button {
+  color:#7ca2bd;
+  background:none;
+  border:0;
+  cursor:pointer;
+  font-size:22px;
+}
+.top-actions {
+  display:flex;
+  align-items:center;
+  gap:12px
+}
+.top-actions .text-button {
+  font:8px Consolas,monospace;
+  letter-spacing:.12em
+}
+.notification-button {
+  border:1px solid rgba(92,194,255,.16);
+  border-radius:12px;
+  background:rgba(7,17,29,.56);
+  color:#6f95aa;
+  padding:6px 9px;
+  font:7px Consolas,monospace;
+  letter-spacing:.12em;
+  cursor:pointer
+}
+.notification-button i {
+  display:inline-grid;
+  place-items:center;
+  width:15px;
+  height:15px;
+  margin-left:5px;
+  border-radius:50%;
+  background:rgba(76,201,255,.2);
+  color:#a9ecff;
+  font-style:normal
+}
+.top-actions .text-button.active {
+  color:#74e7cc;
+  text-shadow:0 0 12px rgba(85,239,189,.35)
+}
+.workspace {
+  display:grid;
+  grid-template-columns:minmax(190px,250px) minmax(400px,1fr) minmax(260px,340px);
+  gap:28px;
+  align-items:center;
+}
+.panel {
+  border:1px solid rgba(92,194,255,.14);
+  border-radius:12px;
+  background:linear-gradient(145deg,rgba(7,17,29,.88),rgba(4,10,18,.82));
+  backdrop-filter:blur(18px);
+  box-shadow:inset 0 1px rgba(255,255,255,.035),0 20px 60px rgba(0,0,0,.22);
+  position:relative;
+}
+.panel:before,.panel:after {
+  content:"";
+  position:absolute;
+  width:12px;
+  height:12px;
+  border-color:var(--cyan);
+  opacity:.55;
+}
+.panel:before {
+  top:7px;
+  left:7px;
+  border-top:1px solid;
+  border-left:1px solid;
+  border-radius:3px 0 0;
+}
+.panel:after {
+  right:7px;
+  bottom:7px;
+  border-right:1px solid;
+  border-bottom:1px solid;
+  border-radius:0 0 3px;
+}
+.telemetry {
+  padding:21px;
+  align-self:center;
+}
+.eyebrow {
+  color:#57c8f4;
+  font:8px Consolas,monospace;
+  letter-spacing:.22em;
+  margin:0 0 14px;
+}
+.metric {
+  margin:13px 0;
+}
+.metric span {
+  display:block;
+  color:#607d91;
+  font:7px Consolas,monospace;
+  letter-spacing:.14em;
+  margin-bottom:5px;
+}
+.metric strong {
+  font:11px Consolas,monospace;
+  font-weight:400;
+  color:#c6deef;
+}
+.microphone-level {
+  height:3px;
+  margin:7px 0 8px;
+  background:rgba(95,184,229,.12);
+  overflow:hidden;
+  border-radius:4px
+}
+.microphone-level i {
+  display:block;
+  width:100%;
+  height:100%;
+  transform:scaleX(0);
+  transform-origin:left;
+  background:linear-gradient(90deg,#49bfff,#72f1d2);
+  box-shadow:0 0 10px #55dfff;
+  transition:transform 55ms linear
+}
+.microphone-metric strong {
+  font-size:8px;
+  color:#67899e
+}
+.microphone-metric strong.online {
+  color:#62dfbd
+}
+.microphone-metric strong.blocked {
+  color:#ff7185
+}
+.line {
+  height:1px;
+  background:linear-gradient(90deg,rgba(85,214,255,.35),transparent);
+  margin:19px 0;
+}
+.privacy {
+  color:#718b9d;
+  font-size:9px;
+  line-height:1.5;
+  display:flex;
+  gap:8px;
+  margin:0;
+}
+.privacy i {
+  flex:0 0 auto;
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#55efbd;
+  margin-top:4px;
+}
+.capability-nav {
+  display:grid;
+  gap:4px
+}
+.capability-nav button {
+  display:grid;
+  grid-template-columns:25px 1fr;
+  align-items:center;
+  text-align:left;
+  gap:8px;
+  border:0;
+  border-left:1px solid rgba(89,200,255,.12);
+  background:transparent;
+  color:#7592a5;
+  padding:7px 5px;
+  cursor:pointer;
+  transition:.18s
+}
+.capability-nav button:hover {
+  border-left-color:var(--cyan);
+  background:linear-gradient(90deg,rgba(60,174,230,.09),transparent);
+  color:#c4e9f8
+}
+.capability-nav i {
+  color:#3e667c;
+  font:7px Consolas,monospace;
+  font-style:normal
+}
+.capability-nav span {
+  font:8px Consolas,monospace;
+  letter-spacing:.08em
+}
+.capability-nav small {
+  display:block;
+  margin-top:3px;
+  color:#426477;
+  font-size:6px
+}
+.setup-button {
+  width:100%;
+  margin-top:15px;
+  border:1px solid rgba(82,201,255,.28);
+  background:rgba(22,94,132,.24);
+  color:#8fe6ff;
+  padding:9px;
+  font:8px Consolas,monospace;
+  letter-spacing:.12em;
+  cursor:pointer;
+}

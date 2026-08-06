@@ -7,7 +7,12 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import unquote, urlparse
 
 from backend import app as backend_app
-from backend.identity import PRODUCT_NAME, apply_backend_identity
+from backend.identity import (
+    PRODUCT_NAME,
+    apply_backend_identity,
+    migrate_docx_brand,
+    migrate_public_payload,
+)
 
 apply_backend_identity(backend_app)
 
@@ -42,7 +47,7 @@ class NoaHandler(BaseHTTPRequestHandler):
         return
 
     def send_json(self, data: dict, status: HTTPStatus = HTTPStatus.OK) -> None:
-        body = json.dumps(data, ensure_ascii=False).encode("utf-8")
+        body = json.dumps(migrate_public_payload(data), ensure_ascii=False).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
@@ -137,7 +142,8 @@ class NoaHandler(BaseHTTPRequestHandler):
                     data.get("personalization") if isinstance(data.get("personalization"), dict) else {},
                 )
                 for event in events:
-                    self.wfile.write((json.dumps(event, ensure_ascii=False) + "\n").encode("utf-8"))
+                    migrated_event = migrate_public_payload(event)
+                    self.wfile.write((json.dumps(migrated_event, ensure_ascii=False) + "\n").encode("utf-8"))
                     self.wfile.flush()
             except (BrokenPipeError, ConnectionResetError):
                 pass
@@ -173,7 +179,7 @@ class NoaHandler(BaseHTTPRequestHandler):
             data = self.read_json()
             content = create_docx(str(data.get("text", "")))
             if content:
-                self.send_bytes(content, "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+                self.send_bytes(migrate_docx_brand(content), "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
             else:
                 self.send_json({"error": "Exportação DOCX indisponível"}, HTTPStatus.SERVICE_UNAVAILABLE)
             return

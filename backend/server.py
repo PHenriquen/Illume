@@ -6,6 +6,11 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import unquote, urlparse
 
+from backend import app as backend_app
+from backend.identity import PRODUCT_NAME, apply_backend_identity
+
+apply_backend_identity(backend_app)
+
 from backend.app import (
     DEFAULT_MODEL,
     WEB_DIR,
@@ -30,8 +35,8 @@ from backend.app import (
 )
 
 
-class TraceHandler(BaseHTTPRequestHandler):
-    server_version = "TRACE/1.0.2"
+class NoaHandler(BaseHTTPRequestHandler):
+    server_version = "Noa/1.0.2"
 
     def log_message(self, _format: str, *_args) -> None:
         return
@@ -75,7 +80,18 @@ class TraceHandler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         if path == "/api/health":
             ollama = ollama_available()
-            self.send_json({"ok": True, "ollama": ollama, "model_installed": model_installed() if ollama else False, "voice_ready": voice_ready(), "tts_ready": tts_ready(), "document_ready": document_reader_ready(), "model": DEFAULT_MODEL, "memories": memory_count(), "profile": "eco"})
+            self.send_json({
+                "ok": True,
+                "product": PRODUCT_NAME,
+                "ollama": ollama,
+                "model_installed": model_installed() if ollama else False,
+                "voice_ready": voice_ready(),
+                "tts_ready": tts_ready(),
+                "document_ready": document_reader_ready(),
+                "model": DEFAULT_MODEL,
+                "memories": memory_count(),
+                "profile": "eco",
+            })
             return
         if path == "/api/history":
             self.send_json({"messages": conversation_history()})
@@ -112,7 +128,14 @@ class TraceHandler(BaseHTTPRequestHandler):
             self.send_header("Connection", "close")
             self.end_headers()
             try:
-                events = stream_chat(str(data.get("message", "")), str(data.get("model", DEFAULT_MODEL)), data.get("attachments") if isinstance(data.get("attachments"), list) else [], data.get("permissions") if isinstance(data.get("permissions"), dict) else {}, str(data.get("profile", "balanced")), data.get("personalization") if isinstance(data.get("personalization"), dict) else {})
+                events = stream_chat(
+                    str(data.get("message", "")),
+                    str(data.get("model", DEFAULT_MODEL)),
+                    data.get("attachments") if isinstance(data.get("attachments"), list) else [],
+                    data.get("permissions") if isinstance(data.get("permissions"), dict) else {},
+                    str(data.get("profile", "balanced")),
+                    data.get("personalization") if isinstance(data.get("personalization"), dict) else {},
+                )
                 for event in events:
                     self.wfile.write((json.dumps(event, ensure_ascii=False) + "\n").encode("utf-8"))
                     self.wfile.flush()
@@ -121,11 +144,18 @@ class TraceHandler(BaseHTTPRequestHandler):
             return
         if path == "/api/chat":
             data = self.read_json(70 * 1024 * 1024)
-            self.send_json(chat(str(data.get("message", "")), str(data.get("model", DEFAULT_MODEL)), data.get("attachments") if isinstance(data.get("attachments"), list) else [], data.get("permissions") if isinstance(data.get("permissions"), dict) else {}, str(data.get("profile", "balanced")), data.get("personalization") if isinstance(data.get("personalization"), dict) else {}))
+            self.send_json(chat(
+                str(data.get("message", "")),
+                str(data.get("model", DEFAULT_MODEL)),
+                data.get("attachments") if isinstance(data.get("attachments"), list) else [],
+                data.get("permissions") if isinstance(data.get("permissions"), dict) else {},
+                str(data.get("profile", "balanced")),
+                data.get("personalization") if isinstance(data.get("personalization"), dict) else {},
+            ))
             return
         if path == "/api/transcribe":
-            purpose = self.headers.get("X-Trace-Purpose", "command").lower()
-            ok, result = transcribe_whisper(self.read_body(), "wake" if purpose == "wake" else "command")
+            purpose = self.headers.get("X-Noa-Purpose") or self.headers.get("X-Trace-Purpose", "command")
+            ok, result = transcribe_whisper(self.read_body(), "wake" if purpose.lower() == "wake" else "command")
             self.send_json({"ok": ok, "text": result if ok else "", "message": "" if ok else result}, HTTPStatus.OK if ok else HTTPStatus.UNPROCESSABLE_ENTITY)
             return
         if path == "/api/voice/stop":
@@ -182,7 +212,7 @@ class TraceHandler(BaseHTTPRequestHandler):
 
 
 def create_server(host: str = "127.0.0.1", port: int = 8710) -> ThreadingHTTPServer:
-    return ThreadingHTTPServer((host, port), TraceHandler)
+    return ThreadingHTTPServer((host, port), NoaHandler)
 
 
 def run_server(host: str = "127.0.0.1", port: int = 8710) -> None:

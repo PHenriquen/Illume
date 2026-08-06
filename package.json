@@ -27,7 +27,7 @@
     "desktop:installer": "npm run build && electron-builder --win nsis --x64",
     "setup:all": "python -m backend.setup --all",
     "setup:status": "python -m backend.setup --status",
-    "backup:windows": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/windows/powershell/Backup-TraceComplete.ps1"
+    "backup:windows": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/windows/powershell/Backup-NoaComplete.ps1"
   },
   "devDependencies": {
     "typescript": "^5.9.2",

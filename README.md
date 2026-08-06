@@ -1,74 +1,109 @@
-# TRACE AI
+# Noa
 
-Assistente pessoal local para Windows com inteligência artificial, voz, memória, interface compacta e automações executadas somente após autorização.
+> **Inteligência local. Presença real.**
 
-> **Estado atual:** versão `1.0.2` — Living Core. O projeto está funcional, mas ainda deve ser tratado como software em desenvolvimento antes de uma distribuição pública ampla.
+Noa é uma companhia digital local para Windows com conversa por texto e voz, memória persistente, leitura de documentos e ações executadas somente dentro de permissões definidas pelo usuário.
 
-## Principais recursos
+O objetivo não é criar apenas mais uma interface para modelos de linguagem. Noa busca reunir inteligência local, contexto autorizado e automação segura em uma experiência desktop coerente, verificável e pessoal.
 
-- IA local executada pelo Ollama com modelo Qwen configurável.
-- Conversa em streaming, memória local em SQLite e histórico persistente.
-- Entrada por texto, microfone, palavra-chave e duas palmas opcionais.
-- Resposta por voz do Windows ou mecanismo neural local.
-- Interface Electron com painel, bandeja e sobreposição compacta.
-- Leitura local de texto, código, PDF, DOCX e imagens autorizadas.
-- Abertura de aplicativos e rotinas somente a partir de uma lista permitida.
-- Exportação de respostas em TXT, PDF e DOCX.
-- Testes automatizados para arquitetura, permissões e resolução de aplicativos.
+> **Estado atual:** versão `1.0.2` — Living Core. O projeto possui uma base funcional, mas ainda deve ser tratado como software em desenvolvimento antes de uma distribuição pública ampla.
 
-## Tecnologias
+## Visão
 
-- **Interface:** TypeScript, Vite, HTML e CSS.
-- **Desktop:** Electron e Electron Builder.
-- **Backend:** Python 3.13 e biblioteca padrão.
-- **Dados:** SQLite local.
-- **IA local:** Ollama, Qwen, Whisper.cpp e Piper, preparados sob demanda.
+Noa deve ser:
 
-## Estrutura do projeto
+- **local por padrão**, mantendo histórico e dados sensíveis no dispositivo sempre que possível;
+- **transparente**, mostrando modelo ativo, estado, permissões e uso de rede;
+- **útil**, capaz de agir em aplicativos, arquivos e rotinas autorizadas;
+- **controlável**, separando sugestão, aprovação, execução e resultado;
+- **presente sem ser invasiva**, com painel completo, modo compacto e voz opcional;
+- **confiável**, explicando falhas em vez de fingir que uma ação foi concluída.
+
+Leia a definição completa em [`docs/PRODUCT.md`](docs/PRODUCT.md), a identidade em [`docs/BRAND.md`](docs/BRAND.md) e as referências de pesquisa em [`docs/REFERENCES.md`](docs/REFERENCES.md).
+
+## Capacidades atuais
+
+- IA local por Ollama, com modelo Qwen configurável;
+- conversa em streaming;
+- memória local em SQLite e histórico persistente;
+- entrada por texto, microfone, palavra de ativação e duas palmas opcionais;
+- resposta por voz do Windows ou mecanismo neural local;
+- painel Electron, bandeja e sobreposição compacta;
+- leitura local de texto, código, PDF, DOCX e imagens autorizadas;
+- abertura de aplicativos e rotinas a partir de uma lista permitida;
+- exportação de respostas em TXT, PDF e DOCX;
+- testes automatizados para arquitetura, permissões e resolução de aplicativos.
+
+## Princípio operacional
 
 ```text
-TRACE-AI/
-├── .github/workflows/       # validação automática no GitHub Actions
+Entender -> Planejar -> Verificar permissão -> Executar -> Confirmar -> Registrar
+```
+
+O modelo não deve receber acesso irrestrito ao computador. Ações do sistema precisam passar por contratos explícitos, allowlists, escopos de arquivo ou confirmação do usuário.
+
+## Arquitetura
+
+```text
+NOA/
+├── .github/workflows/       # validação automática
 ├── backend/
 │   ├── app.py               # IA, memória, voz e documentos
 │   ├── server.py            # servidor HTTP e rotas locais
-│   └── launcher.py          # inicialização e encerramento seguro
+│   └── launcher.py          # ciclo de vida do núcleo local
 ├── desktop/
-│   ├── main.cjs             # ciclo de vida do Electron e IPC
-│   ├── preload.cjs          # ponte segura entre interface e Electron
+│   ├── main.cjs             # janelas, bandeja, IPC e integração com Windows
+│   ├── preload.cjs          # ponte segura para o renderer
 │   └── app-resolver.cjs     # resolução de aplicativos autorizados
-├── docs/                    # arquitetura e desenvolvimento
+├── docs/                    # produto, marca, arquitetura e desenvolvimento
 ├── native/                  # reconhecimento leve e recursos visuais
-├── scripts/                 # automação de desenvolvimento e empacotamento
+├── scripts/                 # instalação, diagnóstico, backup e build
 ├── src/
 │   ├── app/
 │   │   ├── apps.ts          # aplicativos e rotinas
 │   │   ├── audio.ts         # microfone, palmas e transcrição
-│   │   ├── bootstrap.ts     # eventos e inicialização
+│   │   ├── bootstrap.ts     # eventos, migrações e inicialização
 │   │   ├── chat.ts          # mensagens, anexos e streaming
 │   │   ├── core.ts          # estado visual e partículas
 │   │   ├── runtime.ts       # estado compartilhado tipado
 │   │   ├── speech.ts        # síntese de voz
 │   │   ├── system.ts        # saúde, instalação e preferências
 │   │   └── types.ts         # contratos da aplicação
-│   ├── main.ts              # composição dos módulos
-│   └── style.css            # identidade visual
+│   ├── main.ts              # composition root
+│   └── style.css            # composição da identidade visual
 └── tests/                   # testes automatizados
 ```
 
-A interface não depende mais de um arquivo TypeScript monolítico. O `src/main.ts` apenas compõe os controladores, enquanto cada domínio possui um módulo próprio.
+A arquitetura atual possui três superfícies principais:
 
-## Preparação no VS Code
+1. **Renderer TypeScript:** interface, conversa, áudio e preferências;
+2. **Processo principal Electron:** janelas, bandeja, atalhos, IPC e ações nativas;
+3. **Backend Python:** IA local, memória, documentos, STT, TTS e API local.
+
+Consulte [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
+## Tecnologias
+
+- **Interface:** TypeScript, Vite, HTML e CSS;
+- **Desktop:** Electron e Electron Builder;
+- **Backend:** Python 3.13 e biblioteca padrão;
+- **Dados:** SQLite local;
+- **IA local:** Ollama e Qwen;
+- **Voz:** Whisper.cpp, Piper e recursos do Windows;
+- **Qualidade:** Node Test Runner, TypeScript e GitHub Actions.
+
+## Preparação para desenvolvimento
 
 ### Requisitos
 
-- Windows 10 ou 11.
-- Node.js 22 ou superior.
-- npm 10 ou superior.
-- Python 3.13 recomendado.
-- Git.
+- Windows 10 ou 11;
+- Node.js 22 ou superior;
+- npm 10 ou superior;
+- Python 3.13 recomendado;
+- Git;
+- Ollama para o provedor local padrão.
 
-### Instalação para desenvolvimento
+### Instalação
 
 ```powershell
 npm ci
@@ -76,109 +111,111 @@ npm run check
 npm run build
 ```
 
-Para iniciar o aplicativo desktop depois do build:
+Para abrir o aplicativo desktop:
 
 ```powershell
 npm run desktop
 ```
 
-Para iniciar o núcleo local diretamente:
+Para iniciar somente o núcleo Python:
 
 ```powershell
 python -m backend.launcher
 ```
 
-Também existem scripts assistidos em `scripts/windows/`.
-
-## Comandos disponíveis
+## Comandos
 
 | Comando | Função |
 |---|---|
-| `npm run dev` | inicia somente a interface Vite |
-| `npm run typecheck` | valida o TypeScript sem gerar arquivos |
-| `npm test` | executa os testes automatizados |
+| `npm run dev` | inicia a interface Vite |
+| `npm run typecheck` | valida TypeScript |
+| `npm test` | executa testes automatizados |
 | `npm run check` | executa tipagem e testes |
 | `npm run build` | limpa e compila a interface |
-| `npm run desktop` | abre o Electron com o build atual |
+| `npm run desktop` | abre o Electron |
 | `npm run desktop:package` | gera a versão portátil para Windows |
 | `npm run desktop:installer` | gera o instalador NSIS |
+| `npm run setup:status` | verifica componentes locais |
+| `npm run setup:all` | prepara componentes opcionais |
 
 ## Dados e privacidade
 
-Por padrão, dados persistentes são mantidos no próprio computador:
+Por padrão, dados persistentes são mantidos no computador do usuário. O projeto não deve versionar:
 
-- Windows: `%LOCALAPPDATA%\TRACE-AI`
-- Outros sistemas: `.trace-data/`
-
-O repositório não deve conter:
-
-- `node_modules/`;
-- `dist/`;
-- `release/`;
 - bancos SQLite;
-- ambientes virtuais;
+- históricos pessoais;
 - modelos de IA;
-- tokens, chaves ou arquivos `.env`.
+- componentes baixados;
+- tokens, chaves ou arquivos `.env`;
+- `node_modules`, `dist` ou `release`.
 
-Esses caminhos já estão protegidos pelo `.gitignore`.
+O uso de um provedor remoto deve ser exibido claramente. A marca não pode afirmar que uma sessão é inteiramente local quando áudio, texto, documentos ou contexto forem enviados para outro serviço.
 
 ## Segurança
 
-- O renderer não recebe acesso direto ao Node.js.
-- A comunicação com o Electron ocorre por uma API limitada no preload.
-- Aplicativos precisam ser detectados e autorizados antes de serem abertos.
-- Comandos arbitrários de terminal não são enviados ao modelo.
-- Captura de tela, leitura e edição de arquivos dependem das permissões da interface.
-- Downloads de componentes locais são iniciados apenas por ações explícitas do usuário.
+- o renderer não recebe acesso direto ao Node.js;
+- a comunicação com Electron ocorre por uma API limitada no preload;
+- aplicativos precisam ser detectados e autorizados;
+- comandos arbitrários de terminal não são entregues diretamente ao modelo;
+- captura de tela e acesso a arquivos dependem de consentimento;
+- componentes locais são instalados somente após ação explícita;
+- operações persistentes e externas devem possuir confirmação proporcional ao risco.
 
-## Build para Windows
+## Pesquisa e diferenciação
 
-A maneira recomendada é:
+O desenvolvimento considera referências como Leon, Open Interpreter, OpenVoiceOS, Home Assistant Assist, Open WebUI, Ollama, LM Studio e MCP. A pesquisa serve para comparar padrões de voz, memória, ferramentas, permissões e modelos locais — não para copiar identidade ou transformar Noa em uma colagem de produtos.
 
-```powershell
-npm ci
-npm run check
-npm run desktop:package
-```
+A identidade própria da Noa é a combinação de:
 
-O resultado portátil será criado em `release/win-unpacked/`. A pasta `release/` é artefato de build e não deve ser versionada.
+- foco inicial em Windows;
+- IA local acessível;
+- presença compacta e painel completo;
+- memória revisável;
+- documentos e contexto selecionados;
+- ações tipadas e auditáveis;
+- instalação orientada a usuários que não desejam montar a pilha manualmente.
 
-## Qualidade e validação
+## Roadmap imediato
 
-A suíte atual cobre:
+### 1. Rebranding seguro
 
-- duplicidade de canais IPC;
-- resolução segura de aplicativos;
-- ativação por voz e palmas;
-- interrupção de fala;
-- OCR e documentos;
-- streaming de respostas;
-- limites de tamanho dos módulos da interface.
+- migrar a interface pública de TRACE para Noa;
+- substituir ícone, textos, instalador e documentação;
+- preservar dados existentes e compatibilidade de atualização;
+- manter identificadores internos legados somente quando necessários à migração.
 
-Consulte [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) para os contratos internos e [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) para o fluxo de contribuição.
+### 2. Núcleo de ações
+
+- separar intenção, autorização, execução e resultado;
+- criar contratos tipados;
+- registrar ações e falhas;
+- adicionar testes de segurança.
+
+### 3. Voz confiável
+
+- estruturar pipeline de áudio explícito;
+- adicionar VAD;
+- melhorar wake word, calibração e interrupção;
+- impedir listeners concorrentes.
+
+### 4. Memória controlável
+
+- separar histórico, preferências e contexto temporário;
+- permitir revisão, edição, exportação e exclusão;
+- registrar origem e finalidade de cada memória.
 
 ## Limitações atuais
 
-- O reconhecimento leve depende dos recursos de fala disponíveis no Windows.
-- Microfones e ambientes muito ruidosos podem exigir calibração.
-- Alguns componentes opcionais exigem download inicial.
-- Assinatura digital e atualização automática ainda dependem de infraestrutura de distribuição.
-- Antes de publicar um instalador, é necessário testar microfone, sobreposição, aplicativos da Microsoft Store e empacotamento em uma máquina Windows limpa.
+- microfones e ambientes ruidosos ainda podem exigir calibração;
+- alguns componentes opcionais dependem de download inicial;
+- assinatura digital e atualização automática exigem infraestrutura de distribuição;
+- o aplicativo precisa ser validado em uma instalação limpa do Windows;
+- a migração completa da identidade TRACE para Noa ainda está em andamento.
 
-## Instalação completa e backup real
+## Compatibilidade durante o rebranding
 
-Para preparar o TRACE em um Windows novo, execute:
+Alguns nomes internos, diretórios de dados, identificadores de pacote e scripts ainda podem usar `TRACE` temporariamente. Eles não devem ser renomeados de forma abrupta, pois isso pode quebrar atualização, backup ou acesso aos dados existentes. A migração será feita com compatibilidade explícita.
 
-```text
-INSTALAR_TRACE_COMPLETO.bat
-```
+## Licença
 
-Esse instalador prepara o aplicativo e também IA local, Whisper, Piper, voz pt-BR e leitura de documentos. Downloads são reutilizados quando os componentes já existem.
-
-Depois que o TRACE estiver completo, execute:
-
-```text
-CRIAR_BACKUP_COMPLETO.bat
-```
-
-Ele cria no Desktop uma pasta restaurável com o código, memória, componentes de voz, bibliotecas de documentos e modelos do Ollama. Consulte [`docs/BACKUP_AND_RECOVERY.md`](docs/BACKUP_AND_RECOVERY.md).
+O repositório está atualmente marcado como `UNLICENSED`. Antes de incentivar contribuições ou distribuição pública, é necessário definir uma política de licença coerente com o código, a marca Noa e os componentes de terceiros.

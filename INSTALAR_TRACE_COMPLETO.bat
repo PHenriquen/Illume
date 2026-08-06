@@ -1,2 +1,3 @@
 @echo off
-call "%~dp0scripts\windows\INSTALAR_TRACE_COMPLETO.bat"
+rem Compatibilidade: o instalador oficial agora usa o nome Noa.
+call "%~dp0INSTALAR_NOA_COMPLETO.bat" %*

@@ -1,3 +1,10 @@
+export const NOA_VOICE_COMMANDS = {
+  wake: ["acorde noa", "olá noa", "oi noa", "e aí noa"] as const,
+  sleep: ["descanse noa", "durma noa"] as const,
+  legacyWake: ["acorde trace", "acorde tracer"] as const,
+  legacySleep: ["descanse trace", "descanse tracer"] as const,
+} as const;
+
 export const NOA_IDENTITY = Object.freeze({
   productName: "Noa",
   productNameUppercase: "NOA",

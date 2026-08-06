@@ -10,6 +10,11 @@ import time
 import webbrowser
 from pathlib import Path
 
+from backend import app as backend_app
+from backend.identity import PRODUCT_NAME, apply_backend_identity
+
+apply_backend_identity(backend_app)
+
 from backend.app import (
     cleanup_orphaned_whisper,
     model_installed,
@@ -107,8 +112,8 @@ if __name__ == "__main__":
     try:
         server = create_server()
     except OSError:
-        print("\n[ERRO] Já existe uma versão do TRACE usando a porta 8710.")
-        print("Feche a janela preta da versão anterior e abra esta versão novamente.\n")
+        print(f"\n[ERRO] Já existe uma versão da {PRODUCT_NAME} usando a porta 8710.")
+        print("Feche a instância anterior e abra esta versão novamente.\n")
         raise SystemExit(2)
     threading.Thread(target=open_when_ready, daemon=True).start()
     threading.Thread(target=automatic_setup, daemon=True).start()

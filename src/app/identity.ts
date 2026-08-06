@@ -25,12 +25,120 @@ const TEXT_REPLACEMENTS: ReadonlyArray<readonly [RegExp, string]> = [
 ];
 
 const BRAND_ATTRIBUTES = ["aria-label", "title", "placeholder", "value"] as const;
+const ASSISTANT_NAME_PATTERN = "(?:noa|noah|trace|tracer|tres|treice|treicer|tracy|tracey|trece|traze)";
+const WAKE_ACTION_PATTERN = "(?:acorde|acorda|ola|oi|e ai)";
+const SLEEP_ACTION_PATTERN = "(?:descanse|durma|desligue)";
+const identityObservers = new WeakMap<Document, MutationObserver>();
 
 function replaceLegacyBrand(value: string): string {
   return TEXT_REPLACEMENTS.reduce(
     (currentValue, [pattern, replacement]) => currentValue.replace(pattern, replacement),
     value,
   );
+}
+
+export function normalizeSpokenCommand(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("pt-BR")
+    .replace(/[^a-z0-9 ]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export function isNoaWakeCommand(value: string): boolean {
+  const normalized = normalizeSpokenCommand(value);
+  return new RegExp(
+    `^(?:${WAKE_ACTION_PATTERN}\\s+${ASSISTANT_NAME_PATTERN}|${ASSISTANT_NAME_PATTERN}\\s+${WAKE_ACTION_PATTERN})$`,
+    "i",
+  ).test(normalized);
+}
+
+export function isNoaSleepCommand(value: string): boolean {
+  const normalized = normalizeSpokenCommand(value);
+  return new RegExp(
+    `^(?:${SLEEP_ACTION_PATTERN}\\s+${ASSISTANT_NAME_PATTERN}|${ASSISTANT_NAME_PATTERN}\\s+${SLEEP_ACTION_PATTERN})$`,
+    "i",
+  ).test(normalized);
+}
+
+function rewriteTextNode(node: Node): void {
+  const parentTag = node.parentElement?.tagName;
+  if (parentTag === "SCRIPT" || parentTag === "STYLE" || !node.nodeValue) {
+    return;
+  }
+
+  const rewritten = replaceLegacyBrand(node.nodeValue);
+  if (rewritten !== node.nodeValue) {
+    node.nodeValue = rewritten;
+  }
+}
+
+function rewriteElementAttributes(element: HTMLElement): void {
+  BRAND_ATTRIBUTES.forEach((attributeName) => {
+    const value = element.getAttribute(attributeName);
+    if (!value) {
+      return;
+    }
+
+    const rewritten = replaceLegacyBrand(value);
+    if (rewritten !== value) {
+      element.setAttribute(attributeName, rewritten);
+    }
+  });
+}
+
+function rewriteSubtree(root: ParentNode, documentRef: Document): void {
+  if (root instanceof HTMLElement) {
+    rewriteElementAttributes(root);
+  }
+
+  const walker = documentRef.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  let currentNode: Node | null = walker.nextNode();
+  while (currentNode) {
+    rewriteTextNode(currentNode);
+    currentNode = walker.nextNode();
+  }
+
+  root.querySelectorAll<HTMLElement>("*").forEach(rewriteElementAttributes);
+}
+
+function observeRuntimeIdentity(documentRef: Document): void {
+  if (!documentRef.body || identityObservers.has(documentRef)) {
+    return;
+  }
+
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      if (mutation.type === "characterData") {
+        rewriteTextNode(mutation.target);
+        return;
+      }
+
+      if (mutation.type === "attributes" && mutation.target instanceof HTMLElement) {
+        rewriteElementAttributes(mutation.target);
+        return;
+      }
+
+      mutation.addedNodes.forEach((node) => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          rewriteTextNode(node);
+        } else if (node instanceof HTMLElement) {
+          rewriteSubtree(node, documentRef);
+        }
+      });
+    });
+  });
+
+  observer.observe(documentRef.body, {
+    subtree: true,
+    childList: true,
+    characterData: true,
+    attributes: true,
+    attributeFilter: [...BRAND_ATTRIBUTES],
+  });
+  identityObservers.set(documentRef, observer);
 }
 
 /**
@@ -48,31 +156,12 @@ export function applyProductIdentity(documentRef: Document = document): void {
     return;
   }
 
-  const walker = documentRef.createTreeWalker(documentRef.body, NodeFilter.SHOW_TEXT);
-  let currentNode: Node | null = walker.nextNode();
-
-  while (currentNode) {
-    const parentElement = currentNode.parentElement;
-    const parentTag = parentElement?.tagName;
-
-    if (parentTag !== "SCRIPT" && parentTag !== "STYLE" && currentNode.nodeValue) {
-      currentNode.nodeValue = replaceLegacyBrand(currentNode.nodeValue);
-    }
-
-    currentNode = walker.nextNode();
-  }
-
-  documentRef.querySelectorAll<HTMLElement>("*").forEach((element) => {
-    BRAND_ATTRIBUTES.forEach((attributeName) => {
-      const value = element.getAttribute(attributeName);
-      if (value) {
-        element.setAttribute(attributeName, replaceLegacyBrand(value));
-      }
-    });
-  });
+  rewriteSubtree(documentRef.body, documentRef);
 
   const assistantAvatar = documentRef.querySelector<HTMLElement>(".message.trace > span");
   if (assistantAvatar) {
     assistantAvatar.textContent = "N";
   }
+
+  observeRuntimeIdentity(documentRef);
 }

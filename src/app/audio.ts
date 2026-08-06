@@ -1,3 +1,4 @@
+import { isNoaSleepCommand, isNoaWakeCommand, NOA_IDENTITY } from "./identity";
 import * as runtime from "./runtime";
 
 function encodeWav(input: Float32Array[], rate: number) {
@@ -114,7 +115,7 @@ async function startAmbient() {
         runtime.micStatus.textContent = "BLOQUEADO";
         runtime.micStatus.className = "blocked";
         void window.traceNative?.report_mic?.(0, "BLOQUEADO");
-        runtime.controllers.core.setState("error", "O Windows bloqueou o acesso ao microfone do TRACE.");
+        runtime.controllers.core.setState("error", "O Windows bloqueou o acesso ao microfone da Noa.");
     }
 }
 
@@ -213,7 +214,7 @@ function monitor(data: Float32Array) {
             runtime.micStatus.textContent = runtime.store.nativeWakeReady ? "ATIVO · PALAVRA-CHAVE LEVE"
                 : "ATIVO · CALIBRADO";
             void window.traceNative?.report_mic?.(0, runtime.micStatus.textContent);
-            runtime.controllers.core.setState("idle", "Microfone calibrado · diga “Acorde, Trace” para conversar");
+            runtime.controllers.core.setState("idle", "Microfone calibrado · diga “Acorde, Noa” para conversar");
         }
     }
     const range = Math.max(0.018, runtime.store.noiseFloor * 6);
@@ -398,7 +399,7 @@ function isLikelyNoiseTranscript(text: string) {
     return /^(risos?|musica|aplausos?|silencio|ruido|som de .+|inaudivel)$/.test(normalized);
 }
 
-function wakeAssistant(text = "TRACE pronto.") {
+function wakeAssistant(text = `${NOA_IDENTITY.productName} disponível.`) {
     openVoiceSession();
     runtime.store.capture = "none";
     runtime.store.chunks = [];
@@ -462,17 +463,12 @@ async function finishCapture() {
             runtime.store.nextWakeCaptureAt = performance.now() + 1600;
             return;
         }
-        const normalized = spoken
-            .toLocaleLowerCase("pt-BR")
-            .replace(/[,.!?]/g, "")
-            .trim();
-        const traceName = "(?:trace|tracer|tr[êe]s|treice|treicer|tracy|tracey|trece|traze)";
-        const rest = new RegExp(`^(?:(?:descanse|durma|desligue)\\s*${traceName}|${traceName}\\s*(?:descanse|durma|desligue))`, "i").test(normalized);
-        const wake = new RegExp(`^(?:acord(?:e|a)\\s*${traceName}|${traceName}\\s*acord(?:e|a))`, "i").test(normalized);
+        const rest = isNoaSleepCommand(spoken);
+        const wake = isNoaWakeCommand(spoken);
         if (rest) {
             closeVoiceSession();
             interruptInteraction();
-            runtime.controllers.core.setState("idle", "TRACE pronto.");
+            runtime.controllers.core.setState("idle", `${NOA_IDENTITY.productName} em espera.`);
             void runtime.nativeCall("sleep_assistant");
             return;
         }

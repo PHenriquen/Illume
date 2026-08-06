@@ -6,7 +6,7 @@
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
-    "url": "https://github.com/PHenriquen/Tracer-IA.git"
+    "url": "https://github.com/PHenriquen/Noa.git"
   },
   "main": "desktop/main.cjs",
   "type": "module",

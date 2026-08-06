@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+import io
+import re
+import zipfile
 from types import ModuleType
+from typing import Any
 
 PRODUCT_NAME = "Noa"
 PRODUCT_ID = "noa"
@@ -32,6 +36,54 @@ Não exponha raciocínio interno. Responda somente com a resposta final.
 Não use emojis, emoticons, ações entre parênteses ou descrições de expressão e gestos.
 Não use Markdown em respostas faladas. Nunca descreva um emoji em palavras.
 """
+
+_PUBLIC_REPLACEMENTS: tuple[tuple[re.Pattern[str], str], ...] = (
+    (re.compile(r"\bTRACE AI\b"), PRODUCT_NAME),
+    (re.compile(r"\bTRACE\b"), PRODUCT_NAME),
+    (re.compile(r"\bTrace\b"), PRODUCT_NAME),
+    (re.compile(r"\bTracer\b"), PRODUCT_NAME),
+)
+
+
+def replace_public_brand(value: str) -> str:
+    migrated = value
+    for pattern, replacement in _PUBLIC_REPLACEMENTS:
+        migrated = pattern.sub(replacement, migrated)
+    return migrated
+
+
+def migrate_public_payload(value: Any) -> Any:
+    """Substitui a marca legada somente em dados destinados à interface."""
+
+    if isinstance(value, str):
+        return replace_public_brand(value)
+    if isinstance(value, dict):
+        return {key: migrate_public_payload(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [migrate_public_payload(item) for item in value]
+    if isinstance(value, tuple):
+        return tuple(migrate_public_payload(item) for item in value)
+    return value
+
+
+def migrate_docx_brand(content: bytes) -> bytes:
+    """Atualiza textos públicos em um DOCX legado sem alterar o documento original."""
+
+    if not content:
+        return content
+    try:
+        source = io.BytesIO(content)
+        output = io.BytesIO()
+        with zipfile.ZipFile(source, "r") as current, zipfile.ZipFile(output, "w") as migrated:
+            for entry in current.infolist():
+                data = current.read(entry.filename)
+                if entry.filename.endswith(".xml"):
+                    text = data.decode("utf-8", errors="strict")
+                    data = replace_public_brand(text).encode("utf-8")
+                migrated.writestr(entry, data)
+        return output.getvalue()
+    except (UnicodeDecodeError, zipfile.BadZipFile, OSError):
+        return content
 
 
 def apply_backend_identity(app_module: ModuleType) -> None:

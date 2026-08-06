@@ -1,3 +1,4 @@
+import { NOA_IDENTITY } from "./identity";
 import * as runtime from "./runtime";
 import type { TraceState, SettingsPage, Health } from "./types";
 
@@ -46,7 +47,7 @@ export function initializeApp(): void {
       if (selected.some((file) => ["pdf", "docx"].includes(file.type))) {
           const status = (await fetch("/api/health").then((r) => r.json())) as Health;
           if (!status.document_ready) {
-              if (!confirm("Para ler PDF/DOCX e reconhecer páginas digitalizadas, o TRACE precisa instalar o módulo local de documentos. Nada será enviado para a internet. Autorizar agora?"))
+              if (!confirm(`Para ler PDF/DOCX e reconhecer páginas digitalizadas, a ${NOA_IDENTITY.productName} precisa instalar o módulo local de documentos. Nada será enviado para a internet. Autorizar agora?`))
                   return;
               const setup = (await fetch("/api/setup/documents", {
                   method: "POST",
@@ -73,7 +74,7 @@ export function initializeApp(): void {
       if (runtime.voiceProfile.value === "silent")
           runtime.voiceProfile.value = "female";
       runtime.controllers.system.setVoiceMode(true);
-      void runtime.controllers.speech.speak("Olá. A voz do TRACE está funcionando.");
+      void runtime.controllers.speech.speak(`Olá. A voz da ${NOA_IDENTITY.productName} está funcionando.`);
   });
   runtime.systemVoiceChoice.addEventListener("change", () => {
       localStorage.setItem("trace-system-voice", runtime.systemVoiceChoice.value);
@@ -373,7 +374,7 @@ export function initializeApp(): void {
           return;
       if (data.type === "sleep") {
           runtime.controllers.audio.closeVoiceSession();
-          runtime.controllers.core.setState("idle", "TRACE em espera.");
+          runtime.controllers.core.setState("idle", `${NOA_IDENTITY.productName} em espera.`);
           return;
       }
       void (async () => {
@@ -436,13 +437,13 @@ export function initializeApp(): void {
       const reason = event.reason instanceof Error
           ? event.reason.message
           : String(event.reason ?? "erro desconhecido");
-      console.error("TRACE unhandled rejection", event.reason);
+      console.error(`${NOA_IDENTITY.productName} unhandled rejection`, event.reason);
       runtime.controllers.core.setState("error", `Falha recuperável da interface: ${reason}`);
       runtime.promptInput.disabled = false;
       runtime.$<HTMLInputElement>("#compact-input").disabled = false;
   });
   addEventListener("error", (event) => {
-      console.error("TRACE renderer error", event.error ?? event.message);
+      console.error(`${NOA_IDENTITY.productName} renderer error`, event.error ?? event.message);
       runtime.controllers.core.setState("error", `Falha recuperável da interface: ${event.message}`);
       runtime.promptInput.disabled = false;
       runtime.$<HTMLInputElement>("#compact-input").disabled = false;

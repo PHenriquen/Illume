@@ -7,6 +7,8 @@ const os = require('os');
 const { resolveLaunchRequest } = require('./app-resolver.cjs');
 const PORT = 8710;
 const URL = `http://127.0.0.1:${PORT}`;
+const PRODUCT_NAME = 'Noa';
+const PRODUCT_DESCRIPTION = 'Companhia digital local';
 let dashboard = null;
 let overlay = null;
 let tray = null;
@@ -23,7 +25,7 @@ let commandShortcut = 'Alt+Space';
 let surfaceState = 'dashboard';
 let overlayAnimation = null;
 let overlayTransition = 0;
-let runtimeState = { state: 'idle', text: 'TRACE pronto.', voiceEnabled: true, micLevel: 0, micStatus: 'INICIANDO' };
+let runtimeState = { state: 'idle', text: `${PRODUCT_NAME} disponível.`, voiceEnabled: true, micLevel: 0, micStatus: 'INICIANDO' };
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 if (!app.requestSingleInstanceLock())
     app.quit();
@@ -322,14 +324,14 @@ async function generateDiagnostic() {
     const memory = await process.getProcessMemoryInfo().catch(() => ({ workingSetSize: 0, privateBytes: 0 }));
     const report = {
         generatedAt: new Date().toISOString(),
-        traceVersion: app.getVersion(), electron: process.versions.electron, node: process.versions.node,
+        product: PRODUCT_NAME, appVersion: app.getVersion(), traceVersion: app.getVersion(), electron: process.versions.electron, node: process.versions.node,
         windows: { platform: os.platform(), release: os.release(), arch: os.arch() },
         hardware: { cpuModel: os.cpus()[0]?.model || 'unknown', cpuThreads: os.cpus().length, totalMemoryMB: Math.round(os.totalmem() / 1048576), freeMemoryMB: Math.round(os.freemem() / 1048576) },
         runtime: { surface: surfaceState, wakeListenerReady, backendRunning: Boolean(backend && !backend.killed), rendererMemoryMB: Math.round((memory.workingSetSize || 0) / 1024), state: runtimeState.state, micStatus: runtimeState.micStatus },
         configuration: { approvedApps: approvedApps.length, routines: routines.length, shortcut: commandShortcut },
         privacy: 'Conversas, nomes de arquivos e nomes de aplicativos não são incluídos.'
     };
-    const result = await dialog.showSaveDialog(dashboard, { title: 'Salvar diagnóstico do TRACE', defaultPath: `TRACE-diagnostico-${new Date().toISOString().slice(0, 10)}.json`, filters: [{ name: 'Diagnóstico JSON', extensions: ['json'] }] });
+    const result = await dialog.showSaveDialog(dashboard, { title: `Salvar diagnóstico da ${PRODUCT_NAME}`, defaultPath: `${PRODUCT_NAME}-diagnostico-${new Date().toISOString().slice(0, 10)}.json`, filters: [{ name: 'Diagnóstico JSON', extensions: ['json'] }] });
     if (result.canceled || !result.filePath)
         return false;
     fs.writeFileSync(result.filePath, JSON.stringify(report, null, 2), 'utf8');
@@ -364,7 +366,7 @@ function createWindows() {
     const icon = path.join(coreDirectory(), 'native', 'assets', 'trace.ico');
     const preload = path.join(__dirname, 'preload.cjs');
     dashboard = new BrowserWindow({
-        title: 'TRACE AI', width: 1420, height: 850, minWidth: 900, minHeight: 620,
+        title: PRODUCT_NAME, width: 1420, height: 850, minWidth: 900, minHeight: 620,
         backgroundColor: '#03060b', icon, show: true,
         webPreferences: { preload, contextIsolation: true, nodeIntegration: false, backgroundThrottling: true }
     });
@@ -376,7 +378,7 @@ function createWindows() {
         surfaceState = 'hidden';
     } });
     overlay = new BrowserWindow({
-        ...parkedOverlayBounds(), title: 'TRACE Compacto', frame: false, transparent: true, backgroundColor: '#00000000', opacity: 0,
+        ...parkedOverlayBounds(), title: `${PRODUCT_NAME} Compacta`, frame: false, transparent: true, backgroundColor: '#00000000', opacity: 0,
         alwaysOnTop: true, skipTaskbar: true, resizable: false, movable: true,
         show: true, focusable: true, hasShadow: false, icon,
         webPreferences: { preload, contextIsolation: true, nodeIntegration: false, backgroundThrottling: false }
@@ -389,13 +391,13 @@ function createWindows() {
 function createTray() {
     const iconPath = path.join(coreDirectory(), 'native', 'assets', 'trace.ico');
     tray = new Tray(nativeImage.createFromPath(iconPath));
-    tray.setToolTip('TRACE AI — Assistente local');
+    tray.setToolTip(`${PRODUCT_NAME} — ${PRODUCT_DESCRIPTION}`);
     tray.setContextMenu(Menu.buildFromTemplate([
-        { label: 'Abrir TRACE', click: showDashboard },
+        { label: `Abrir ${PRODUCT_NAME}`, click: showDashboard },
         { label: 'Chat compacto', click: showOverlay },
         { type: 'separator' },
         { label: 'Ocultar chat', click: hideOverlay },
-        { label: 'Encerrar TRACE', click: () => { quitting = true; app.quit(); } }
+        { label: `Encerrar ${PRODUCT_NAME}`, click: () => { quitting = true; app.quit(); } }
     ]));
     tray.on('double-click', showDashboard);
 }
@@ -422,7 +424,7 @@ ipcMain.handle('trace:set-ambient', (_event, enabled) => { if (overlay && !overl
 ipcMain.handle('trace:get-shortcut', () => commandShortcut);
 ipcMain.handle('trace:select-files', async () => {
     const result = await dialog.showOpenDialog(dashboard, {
-        title: 'Anexar ao TRACE', properties: ['openFile', 'multiSelections'],
+        title: `Anexar à ${PRODUCT_NAME}`, properties: ['openFile', 'multiSelections'],
         filters: [{ name: 'Arquivos compatíveis', extensions: ['pdf', 'docx', 'txt', 'md', 'csv', 'json', 'js', 'ts', 'py', 'html', 'css', 'png', 'jpg', 'jpeg', 'webp'] }, { name: 'Todos', extensions: ['*'] }]
     });
     if (result.canceled)
@@ -439,7 +441,7 @@ ipcMain.handle('trace:select-files', async () => {
 ipcMain.handle('trace:save-document', async (_event, data) => {
     const format = ['pdf', 'docx'].includes(data?.format) ? data.format : 'txt';
     const filters = format === 'pdf' ? [{ name: 'PDF', extensions: ['pdf'] }] : format === 'docx' ? [{ name: 'Word', extensions: ['docx'] }] : [{ name: 'Texto', extensions: ['txt', 'md'] }];
-    const result = await dialog.showSaveDialog(dashboard, { title: 'Salvar resposta do TRACE', defaultPath: `resposta-trace.${format}`, filters });
+    const result = await dialog.showSaveDialog(dashboard, { title: `Salvar resposta da ${PRODUCT_NAME}`, defaultPath: `resposta-noa.${format}`, filters });
     if (result.canceled || !result.filePath)
         return false;
     const content = String(data?.text || '');
@@ -449,7 +451,7 @@ ipcMain.handle('trace:save-document', async (_event, data) => {
     else if (format === 'pdf') {
         const printWindow = new BrowserWindow({ show: false, webPreferences: { sandbox: true } });
         const escaped = content.replace(/[&<>]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[char]));
-        await printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`<style>body{font:15px/1.6 Segoe UI,sans-serif;color:#17202a;padding:40px;white-space:pre-wrap}h1{font-size:20px}</style><h1>Documento revisado pelo TRACE</h1><div>${escaped}</div>`)}`);
+        await printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`<style>body{font:15px/1.6 Segoe UI,sans-serif;color:#17202a;padding:40px;white-space:pre-wrap}h1{font-size:20px}</style><h1>Documento revisado pela Noa</h1><div>${escaped}</div>`)}`);
         fs.writeFileSync(result.filePath, await printWindow.webContents.printToPDF({ printBackground: true, pageSize: 'A4' }));
         printWindow.destroy();
     }

@@ -2,7 +2,7 @@
   "name": "trace-ai",
   "version": "1.0.2",
   "private": true,
-  "description": "Assistente pessoal local para Windows com IA, voz, memória e automações autorizadas.",
+  "description": "Noa é uma companhia digital local para Windows com IA, voz, memória e ações autorizadas.",
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
@@ -42,7 +42,7 @@
   },
   "build": {
     "appId": "com.traceai.desktop",
-    "productName": "TRACE",
+    "productName": "Noa",
     "asar": true,
     "directories": {
       "output": "release"
@@ -71,11 +71,11 @@
     ],
     "win": {
       "icon": "native/assets/trace.ico",
-      "executableName": "TRACE",
+      "executableName": "Noa",
       "target": [
         "nsis"
       ],
-      "artifactName": "TRACE-Setup-${version}.${ext}"
+      "artifactName": "Noa-Setup-${version}.${ext}"
     },
     "nsis": {
       "oneClick": false,
@@ -83,7 +83,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "TRACE AI",
+      "shortcutName": "Noa",
       "deleteAppDataOnUninstall": false
     }
   }

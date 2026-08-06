@@ -1,2 +1,3 @@
 @echo off
-call "%~dp0scripts\windows\CRIAR_BACKUP_COMPLETO.bat"
+rem Compatibilidade: o backup oficial agora usa o nome Noa.
+call "%~dp0CRIAR_BACKUP_NOA_COMPLETO.bat" %*

@@ -13,6 +13,8 @@ from backend.identity import (
     migrate_docx_brand,
     migrate_public_payload,
 )
+from backend.ml_intent import build_default_classifier
+from backend.security import ActionRequest, SecurityPolicy
 
 apply_backend_identity(backend_app)
 
@@ -37,6 +39,19 @@ from backend.app import (
     transcribe_whisper,
     tts_ready,
     voice_ready,
+)
+
+
+INTENT_CLASSIFIER = build_default_classifier()
+SECURITY_POLICY = SecurityPolicy(
+    allowed_actions={
+        "open_app",
+        "read_file",
+        "system_info",
+        "voice_control",
+        "document",
+    },
+    allowed_roots={WEB_DIR},
 )
 
 
@@ -96,6 +111,8 @@ class NoaHandler(BaseHTTPRequestHandler):
                 "model": DEFAULT_MODEL,
                 "memories": memory_count(),
                 "profile": "eco",
+                "intent_classifier": True,
+                "security_policy": True,
             })
             return
         if path == "/api/history":
@@ -105,6 +122,35 @@ class NoaHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         path = urlparse(self.path).path
+        if path == "/api/ml/intent":
+            data = self.read_json()
+            text = str(data.get("text", "")).strip()
+            if not text:
+                self.send_json({"error": "Texto obrigatório"}, HTTPStatus.BAD_REQUEST)
+                return
+            prediction = INTENT_CLASSIFIER.predict(text)
+            self.send_json({
+                "label": prediction.label,
+                "confidence": prediction.confidence,
+                "scores": prediction.scores,
+                "local": True,
+            })
+            return
+        if path == "/api/security/evaluate":
+            data = self.read_json()
+            request = ActionRequest(
+                action=str(data.get("action", "")),
+                resource=str(data.get("resource", "")),
+                risk=str(data.get("risk", "low")),
+            )
+            decision = SECURITY_POLICY.evaluate(request)
+            self.send_json({
+                "allowed": decision.allowed,
+                "reason": decision.reason,
+                "requires_confirmation": decision.requires_confirmation,
+                "executed": False,
+            })
+            return
         if path == "/api/setup/model":
             ok, message = install_model()
             self.send_json({"ok": ok, "message": message, "model": DEFAULT_MODEL}, HTTPStatus.OK if ok else HTTPStatus.SERVICE_UNAVAILABLE)

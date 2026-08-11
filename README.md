@@ -4,9 +4,9 @@
 
 Noa é uma companhia digital local para Windows com conversa por texto e voz, memória persistente, leitura de documentos e ações executadas somente dentro de permissões definidas pelo usuário.
 
-O objetivo não é criar apenas mais uma interface para modelos de linguagem. Noa busca reunir inteligência local, contexto autorizado e automação segura em uma experiência desktop coerente, verificável e pessoal.
+O objetivo não é criar apenas mais uma interface para modelos de linguagem. Noa reúne inteligência local, contexto autorizado, automação segura e engenharia de software desktop em uma experiência coerente e verificável.
 
-> **Estado atual:** versão `1.0.2` — Living Core. O projeto possui uma base funcional, mas ainda deve ser tratado como software em desenvolvimento antes de uma distribuição pública ampla.
+> **Estado atual:** versão `1.0.2` — Living Core. A base principal é funcional, mas o projeto ainda deve ser tratado como software em desenvolvimento antes de uma distribuição pública ampla.
 
 ## Visão
 
@@ -19,7 +19,7 @@ Noa deve ser:
 - **presente sem ser invasiva**, com painel completo, modo compacto e voz opcional;
 - **confiável**, explicando falhas em vez de fingir que uma ação foi concluída.
 
-Leia a definição completa em [`docs/PRODUCT.md`](docs/PRODUCT.md), a identidade em [`docs/BRAND.md`](docs/BRAND.md) e as referências de pesquisa em [`docs/REFERENCES.md`](docs/REFERENCES.md).
+Leia também [`docs/PRODUCT.md`](docs/PRODUCT.md), [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/BRAND.md`](docs/BRAND.md) e [`docs/ENGINEERING_LABS.md`](docs/ENGINEERING_LABS.md).
 
 ## Capacidades atuais
 
@@ -50,47 +50,51 @@ NOA/
 ├── backend/
 │   ├── app.py               # IA, memória, voz e documentos
 │   ├── server.py            # servidor HTTP e rotas locais
-│   └── launcher.py          # ciclo de vida do núcleo local
+│   ├── launcher.py          # ciclo de vida do núcleo local
+│   ├── security.py          # policy engine e auditoria assinada
+│   └── ml_intent.py         # classificador local treinável
 ├── desktop/
 │   ├── main.cjs             # janelas, bandeja, IPC e integração com Windows
 │   ├── preload.cjs          # ponte segura para o renderer
 │   └── app-resolver.cjs     # resolução de aplicativos autorizados
-├── docs/                    # produto, marca, arquitetura e desenvolvimento
-├── native/                  # reconhecimento leve e recursos visuais
+├── docs/                    # produto, marca, arquitetura e engenharia
+├── native/
+│   ├── assets/              # recursos nativos
+│   └── labs/                # experimentos C++ de baixo nível
 ├── scripts/                 # instalação, diagnóstico, backup e build
-├── src/
-│   ├── app/
-│   │   ├── apps.ts          # aplicativos e rotinas
-│   │   ├── audio.ts         # microfone, palmas e transcrição
-│   │   ├── bootstrap.ts     # eventos, migrações e inicialização
-│   │   ├── chat.ts          # mensagens, anexos e streaming
-│   │   ├── core.ts          # estado visual e partículas
-│   │   ├── runtime.ts       # estado compartilhado tipado
-│   │   ├── speech.ts        # síntese de voz
-│   │   ├── system.ts        # saúde, instalação e preferências
-│   │   └── types.ts         # contratos da aplicação
-│   ├── main.ts              # composition root
-│   └── style.css            # composição da identidade visual
+├── src/                     # renderer TypeScript
 └── tests/                   # testes automatizados
 ```
 
-A arquitetura atual possui três superfícies principais:
+A arquitetura possui três superfícies principais:
 
 1. **Renderer TypeScript:** interface, conversa, áudio e preferências;
 2. **Processo principal Electron:** janelas, bandeja, atalhos, IPC e ações nativas;
 3. **Backend Python:** IA local, memória, documentos, STT, TTS e API local.
 
-Consulte [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+Os laboratórios adicionam uma quarta frente experimental: **segurança aplicada, ML treinável e computação nativa C++**, sem obrigar a runtime principal a depender deles.
 
 ## Tecnologias
 
 - **Interface:** TypeScript, Vite, HTML e CSS;
 - **Desktop:** Electron e Electron Builder;
-- **Backend:** Python 3.13 e biblioteca padrão;
+- **Backend:** Python 3.13;
 - **Dados:** SQLite local;
-- **IA local:** Ollama e Qwen;
+- **IA:** Ollama/Qwen + laboratório de ML local;
 - **Voz:** Whisper.cpp, Piper e recursos do Windows;
+- **Segurança:** allowlists, escopos, consentimento, policy engine e auditoria HMAC experimental;
+- **Baixo nível:** laboratório C++ para áudio/concorrência;
 - **Qualidade:** Node Test Runner, TypeScript e GitHub Actions.
+
+## Engineering Labs
+
+Para ampliar o portfólio sem descaracterizar a Noa, o projeto possui experimentos isolados e executáveis:
+
+- `backend/security.py`: autorização por política e trilha de auditoria encadeada com HMAC;
+- `backend/ml_intent.py`: ciclo completo de ML pequeno — dataset, treino, inferência e confiança;
+- `native/labs/audio_ring_buffer.cpp`: estrutura C++ de baixa latência com atomics e memória explícita.
+
+Esses módulos são **experimentais** e só devem entrar no caminho crítico da aplicação quando houver testes, benchmarks e ganho real de produto.
 
 ## Preparação para desenvolvimento
 
@@ -123,6 +127,12 @@ Para iniciar somente o núcleo Python:
 python -m backend.launcher
 ```
 
+Para testar o classificador local treinável:
+
+```powershell
+python -m backend.ml_intent
+```
+
 ## Comandos
 
 | Comando | Função |
@@ -138,65 +148,40 @@ python -m backend.launcher
 | `npm run setup:status` | verifica componentes locais |
 | `npm run setup:all` | prepara componentes opcionais |
 
-## Dados e privacidade
+## Dados, privacidade e segurança
 
-Por padrão, dados persistentes são mantidos no computador do usuário. O projeto não deve versionar:
+Por padrão, dados persistentes são mantidos no computador do usuário. O projeto não deve versionar bancos SQLite, históricos pessoais, modelos baixados, tokens, chaves, arquivos `.env`, `node_modules`, `dist` ou `release`.
 
-- bancos SQLite;
-- históricos pessoais;
-- modelos de IA;
-- componentes baixados;
-- tokens, chaves ou arquivos `.env`;
-- `node_modules`, `dist` ou `release`.
+Camadas de proteção existentes ou em evolução incluem:
 
-O uso de um provedor remoto deve ser exibido claramente. A marca não pode afirmar que uma sessão é inteiramente local quando áudio, texto, documentos ou contexto forem enviados para outro serviço.
-
-## Segurança
-
-- o renderer não recebe acesso direto ao Node.js;
-- a comunicação com Electron ocorre por uma API limitada no preload;
-- aplicativos precisam ser detectados e autorizados;
-- comandos arbitrários de terminal não são entregues diretamente ao modelo;
-- captura de tela e acesso a arquivos dependem de consentimento;
-- componentes locais são instalados somente após ação explícita;
-- operações persistentes e externas devem possuir confirmação proporcional ao risco.
-
-## Pesquisa e diferenciação
-
-O desenvolvimento considera referências como Leon, Open Interpreter, OpenVoiceOS, Home Assistant Assist, Open WebUI, Ollama, LM Studio e MCP. A pesquisa serve para comparar padrões de voz, memória, ferramentas, permissões e modelos locais — não para copiar identidade ou transformar Noa em uma colagem de produtos.
-
-A identidade própria da Noa é a combinação de:
-
-- foco inicial em Windows;
-- IA local acessível;
-- presença compacta e painel completo;
-- memória revisável;
-- documentos e contexto selecionados;
-- ações tipadas e auditáveis;
-- instalação orientada a usuários que não desejam montar a pilha manualmente.
+- renderer sem acesso direto ao Node.js;
+- API limitada no preload Electron;
+- aplicativos e arquivos autorizados por escopo;
+- confirmação proporcional ao risco;
+- comandos arbitrários não entregues diretamente ao modelo;
+- auditoria verificável como laboratório de segurança;
+- separação entre intenção, autorização, execução e resultado.
 
 ## Roadmap imediato
 
-### 1. Rebranding seguro
+### 1. Núcleo de ações seguro
 
-- migrar a interface pública de TRACE para Noa;
-- substituir ícone, textos, instalador e documentação;
-- preservar dados existentes e compatibilidade de atualização;
-- manter identificadores internos legados somente quando necessários à migração.
+- consolidar contratos tipados;
+- integrar gradualmente policy engine e auditoria;
+- adicionar testes de abuso, path traversal e permissões.
 
-### 2. Núcleo de ações
+### 2. Voz confiável e performance
 
-- separar intenção, autorização, execução e resultado;
-- criar contratos tipados;
-- registrar ações e falhas;
-- adicionar testes de segurança.
+- VAD e calibração;
+- melhorar wake word e interrupção;
+- impedir listeners concorrentes;
+- medir se uma ponte C++ nativa traz benefício real ao áudio.
 
-### 3. Voz confiável
+### 3. ML local pragmático
 
-- estruturar pipeline de áudio explícito;
-- adicionar VAD;
-- melhorar wake word, calibração e interrupção;
-- impedir listeners concorrentes.
+- ampliar e versionar dataset de intenções;
+- medir precisão, recall e matriz de confusão;
+- usar o classificador apenas quando superar regras simples em latência/confiabilidade.
 
 ### 4. Memória controlável
 
@@ -209,12 +194,8 @@ A identidade própria da Noa é a combinação de:
 - microfones e ambientes ruidosos ainda podem exigir calibração;
 - alguns componentes opcionais dependem de download inicial;
 - assinatura digital e atualização automática exigem infraestrutura de distribuição;
-- o aplicativo precisa ser validado em uma instalação limpa do Windows;
-- a migração completa da identidade TRACE para Noa ainda está em andamento.
-
-## Compatibilidade durante o rebranding
-
-Alguns nomes internos, diretórios de dados, identificadores de pacote e scripts ainda podem usar `TRACE` temporariamente. Eles não devem ser renomeados de forma abrupta, pois isso pode quebrar atualização, backup ou acesso aos dados existentes. A migração será feita com compatibilidade explícita.
+- os laboratórios de segurança, ML e C++ ainda não fazem parte do caminho crítico de produção;
+- o aplicativo precisa ser validado em uma instalação limpa do Windows.
 
 ## Licença
 

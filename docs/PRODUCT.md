@@ -4,7 +4,9 @@
 
 **Noa é uma companhia digital local para Windows que entende contexto, conversa por texto ou voz e executa ações somente dentro de limites claros definidos pelo usuário.**
 
-Noa não deve ser apresentada como um chatbot com atalhos. O produto combina conversa, memória, documentos, voz e automação em uma única experiência contínua, privada e verificável.
+Noa não deve ser apresentada como um chatbot com atalhos. O produto combina conversa, memória, documentos, voz, contexto autorizado e automação segura em uma experiência contínua, privada e verificável.
+
+A evolução 2.0 mantém essa essência e organiza a experiência em três superfícies: **Orb, Overlay e Workspace**.
 
 ## Problema
 
@@ -16,9 +18,10 @@ Noa existe para reduzir essa fragmentação sem retirar o controle do usuário.
 
 - **Local por padrão:** memória, histórico e componentes sensíveis permanecem no dispositivo sempre que tecnicamente possível.
 - **Ação com consentimento:** toda capacidade operacional possui escopo, permissão e registro.
-- **Presença contínua:** texto, voz, sobreposição compacta e painel completo fazem parte da mesma identidade.
-- **Contexto útil:** memória e contexto são usados para reduzir repetição, não para tornar o comportamento imprevisível.
-- **Falhas compreensíveis:** Noa deve explicar o que tentou fazer, o que falhou e qual é a próxima ação segura.
+- **Presença contínua sem invasão:** a Noa pode existir como Orb mínima, Overlay rápido ou Workspace completo.
+- **Contexto útil:** memória e contexto reduzem repetição, sem tornar o comportamento imprevisível.
+- **Falhas compreensíveis:** Noa explica o que tentou fazer, o que falhou e qual é a próxima ação segura.
+- **Interface orientada a estado:** animações e indicadores representam listening, thinking, approval, execution, speaking e error de verdade.
 
 ## Público inicial
 
@@ -70,6 +73,44 @@ A experiência de voz deve priorizar:
 
 A interface pode ser futurista, mas não deve parecer um painel decorativo. Todo movimento, partícula, leitura e indicador precisa comunicar estado, progresso, risco ou disponibilidade.
 
+## As três superfícies
+
+### Orb
+
+Presença mínima e opcional no desktop.
+
+- comunica estado real;
+- abre Overlay com um clique;
+- abre Workspace com interação expandida;
+- não exibe informação decorativa sem função;
+- pode ser completamente ocultada.
+
+### Overlay
+
+Superfície para tarefas rápidas sobre o aplicativo atual.
+
+- voz e texto;
+- comandos curtos;
+- contexto autorizado da janela/seleção;
+- resumo do plano quando necessário;
+- confirmação de ações sensíveis;
+- desaparece ao concluir a tarefa;
+- pode expandir para o Workspace mantendo o contexto.
+
+### Workspace
+
+Superfície profunda de conversa e controle.
+
+- documentos;
+- histórico;
+- memória;
+- permissões;
+- modelos e voz;
+- diagnósticos;
+- automações e integrações futuras.
+
+O Workspace não é a identidade inteira da Noa: ele é o local de inspeção, configuração e tarefas longas.
+
 ## Modelo funcional
 
 ### Noa Core
@@ -110,6 +151,29 @@ Camada futura para provedores de modelo, extensões e integrações externas. Ne
 | Ação externa | Enviar mensagem ou publicar conteúdo | Sempre exigir confirmação final |
 | Ação crítica | Apagar dados, instalar software, alterar segurança | Bloquear por padrão ou usar confirmação reforçada |
 
+## Contexto visual
+
+A leitura de tela/janela deve ser opt-in e visível.
+
+1. usuário autoriza a superfície;
+2. Noa mostra o que será lido;
+3. captura serve à tarefa atual, salvo permissão persistente explícita;
+4. a resposta identifica que contexto visual foi utilizado;
+5. qualquer ação derivada ainda passa pelo Noa Guard.
+
+## Memória revisável
+
+Categorias iniciais:
+
+- sessão;
+- preferência;
+- projeto;
+- rotina;
+- contato/pessoa explicitamente salvo;
+- histórico de conversa.
+
+Toda memória durável precisa de origem, data e opção de edição/exclusão.
+
 ## Diferencial
 
 Noa não pretende competir por quantidade de integrações. Seu diferencial inicial é unir, em um aplicativo de Windows coerente:
@@ -118,6 +182,7 @@ Noa não pretende competir por quantidade de integrações. Seu diferencial inic
 - voz opcional;
 - memória controlável;
 - leitura de documentos;
+- contexto visual opt-in;
 - ações explícitas;
 - interface compacta;
 - privacidade visível;
@@ -130,7 +195,9 @@ Noa não pretende competir por quantidade de integrações. Seu diferencial inic
 - prometer funcionamento totalmente offline quando um provedor remoto estiver selecionado;
 - agir em segundo plano sem indicação ou registro;
 - substituir antivírus, backup ou controles administrativos do Windows;
-- criar uma personalidade emocional que pressione o usuário a interagir.
+- criar uma personalidade emocional que pressione o usuário a interagir;
+- avatar 3D como requisito do produto;
+- dezenas de integrações antes de estabilizar voz, ações e memória.
 
 ## Métricas de qualidade
 
@@ -138,46 +205,52 @@ Noa não pretende competir por quantidade de integrações. Seu diferencial inic
 - taxa de ativações falsas;
 - percentual de ações concluídas sem intervenção corretiva;
 - uso de CPU e memória em repouso;
+- tempo médio para concluir uma tarefa pelo Overlay;
 - clareza dos erros e diagnósticos;
 - quantidade de permissões concedidas conscientemente;
 - sucesso de instalação em uma máquina Windows limpa.
 
 ## Marcos
 
-### M1 — Rebranding seguro
+### M1 — Presença coerente
 
-- substituir a identidade pública TRACE por Noa;
-- preservar dados e compatibilidade de atualização;
-- migrar títulos, mensagens, instalador, ícone e documentação;
-- documentar identificadores internos mantidos temporariamente.
+- consolidar Orb como indicador de estado real;
+- criar Overlay rápido e consistente;
+- manter Workspace como superfície profunda;
+- unificar linguagem visual entre as três superfícies.
 
 ### M2 — Núcleo de ações
 
-- definir contratos tipados para ações;
+- consolidar contratos tipados;
 - separar intenção, autorização, execução e resultado;
-- criar histórico auditável;
+- criar timeline de execução;
 - adicionar testes de permissão e falha.
 
 ### M3 — Voz confiável
 
 - estruturar pipeline explícito de áudio;
-- adicionar detecção de atividade de voz;
+- adicionar VAD;
 - melhorar palavra de ativação e calibração;
-- permitir interrupção e fallback.
+- permitir interrupção e fallback;
+- impedir listeners concorrentes.
 
-### M4 — Memória controlável
+### M4 — Contexto e memória controláveis
 
+- contexto de janela/seleção opt-in;
 - separar tipos de memória;
-- criar painel de revisão e exclusão;
-- limitar coleta automática;
-- registrar a origem de cada memória.
+- painel de revisão e exclusão;
+- registrar origem de cada memória.
 
 ### M5 — Extensibilidade segura
 
-- criar catálogo de capacidades;
-- avaliar suporte a MCP e provedores OpenAI-compatible;
-- manter permissões por ferramenta e integração;
-- disponibilizar SDK ou contratos somente após estabilizar o núcleo.
+- catálogo de capacidades;
+- avaliar MCP e provedores OpenAI-compatible;
+- permissões por ferramenta e integração;
+- SDK/contratos somente após estabilizar o núcleo.
+
+## Direção visual e de UX
+
+A especificação detalhada fica em [`UX_DIRECTION_2_0.md`](UX_DIRECTION_2_0.md).
 
 ## Frase de posicionamento
 

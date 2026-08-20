@@ -1,5 +1,5 @@
 {
-  "name": "trace-ai",
+  "name": "noa-desktop",
   "version": "1.0.2",
   "private": true,
   "description": "Aplicação desktop local para Windows com backend Python, interface Electron/TypeScript, memória SQLite e automações controladas.",
@@ -43,7 +43,7 @@
     "esbuild@0.28.1": true
   },
   "build": {
-    "appId": "com.traceai.desktop",
+    "appId": "com.phenriquen.noa",
     "productName": "Noa",
     "asar": true,
     "directories": {

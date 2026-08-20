@@ -30,7 +30,7 @@ app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
 if (!app.requestSingleInstanceLock())
     app.quit();
 function coreDirectory() {
-    return app.isPackaged ? path.join(process.resourcesPath, 'trace-core') : path.resolve(__dirname, '..');
+    return app.isPackaged ? path.join(process.resourcesPath, 'noa-core') : path.resolve(__dirname, '..');
 }
 function appRegistryPath() { return path.join(app.getPath('userData'), 'approved-apps.json'); }
 function routineRegistryPath() { return path.join(app.getPath('userData'), 'routines.json'); }
@@ -104,7 +104,7 @@ function startBackend() {
     const python = pythonCommand();
     backend = spawn(python.command, [...python.args, '-m', 'backend.launcher'], {
         cwd: coreDirectory(), windowsHide: true,
-        env: { ...process.env, TRACE_NO_BROWSER: '1' }, stdio: 'ignore'
+        env: { ...process.env, NOA_NO_BROWSER: '1' }, stdio: 'ignore'
     });
 }
 function sendToWindows(channel, data) {
@@ -159,14 +159,14 @@ function startWakeListener() {
         sendToWindows('trace:wake-status', { ready: false, reason: 'listener_failed' });
     }
 }
-function cleanupTraceVoiceProcesses() {
+function cleanupLegacyVoiceProcesses() {
     if (process.platform !== 'win32')
         return;
     const command = "Get-CimInstance Win32_Process -Filter \"Name = 'whisper-cli.exe'\" | Where-Object { $_.CommandLine -like '*TRACE-AI*voice*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }";
     try {
         spawnSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', command], { windowsHide: true, timeout: 8000, stdio: 'ignore' });
     }
-    catch { /* limpeza de seguranca opcional */ }
+    catch { /* limpeza de compatibilidade opcional */ }
 }
 function waitForBackend(timeout = 30000) {
     const started = Date.now();
@@ -324,7 +324,7 @@ async function generateDiagnostic() {
     const memory = await process.getProcessMemoryInfo().catch(() => ({ workingSetSize: 0, privateBytes: 0 }));
     const report = {
         generatedAt: new Date().toISOString(),
-        product: PRODUCT_NAME, appVersion: app.getVersion(), traceVersion: app.getVersion(), electron: process.versions.electron, node: process.versions.node,
+        product: PRODUCT_NAME, appVersion: app.getVersion(), electron: process.versions.electron, node: process.versions.node,
         windows: { platform: os.platform(), release: os.release(), arch: os.arch() },
         hardware: { cpuModel: os.cpus()[0]?.model || 'unknown', cpuThreads: os.cpus().length, totalMemoryMB: Math.round(os.totalmem() / 1048576), freeMemoryMB: Math.round(os.freemem() / 1048576) },
         runtime: { surface: surfaceState, wakeListenerReady, backendRunning: Boolean(backend && !backend.killed), rendererMemoryMB: Math.round((memory.workingSetSize || 0) / 1024), state: runtimeState.state, micStatus: runtimeState.micStatus },
@@ -363,7 +363,7 @@ async function launchApprovedApp(item) {
     return shell.openPath(item.path);
 }
 function createWindows() {
-    const icon = path.join(coreDirectory(), 'native', 'assets', 'trace.ico');
+    const icon = path.join(coreDirectory(), 'native', 'assets', 'noa.ico');
     const preload = path.join(__dirname, 'preload.cjs');
     dashboard = new BrowserWindow({
         title: PRODUCT_NAME, width: 1420, height: 850, minWidth: 900, minHeight: 620,
@@ -389,7 +389,7 @@ function createWindows() {
     overlay.on('blur', () => { });
 }
 function createTray() {
-    const iconPath = path.join(coreDirectory(), 'native', 'assets', 'trace.ico');
+    const iconPath = path.join(coreDirectory(), 'native', 'assets', 'noa.ico');
     tray = new Tray(nativeImage.createFromPath(iconPath));
     tray.setToolTip(`${PRODUCT_NAME} — ${PRODUCT_DESCRIPTION}`);
     tray.setContextMenu(Menu.buildFromTemplate([
@@ -401,6 +401,7 @@ function createTray() {
     ]));
     tray.on('double-click', showDashboard);
 }
+// Canais trace:* permanecem temporariamente para compatibilidade com a bridge já existente.
 ipcMain.handle('trace:expand-overlay', () => { showOrb(); return true; });
 ipcMain.handle('trace:show-orb', () => activateOrb());
 ipcMain.handle('trace:toggle-compact', () => { compactExpanded ? showOrb(true) : showOverlay(); return compactExpanded; });
@@ -534,7 +535,7 @@ app.whenReady().then(async () => {
     detectInstalledApps();
     session.defaultSession.setPermissionRequestHandler((_contents, permission, callback) => callback(permission === 'media'));
     session.defaultSession.setPermissionCheckHandler((_contents, permission) => permission === 'media');
-    cleanupTraceVoiceProcesses();
+    cleanupLegacyVoiceProcesses();
     startBackend();
     try {
         await waitForBackend();
@@ -546,6 +547,6 @@ app.whenReady().then(async () => {
     startWakeListener();
 });
 app.on('window-all-closed', event => event?.preventDefault?.());
-app.on('before-quit', () => { quitting = true; globalShortcut.unregisterAll(); cleanupTraceVoiceProcesses(); if (wakeListener && !wakeListener.killed)
+app.on('before-quit', () => { quitting = true; globalShortcut.unregisterAll(); cleanupLegacyVoiceProcesses(); if (wakeListener && !wakeListener.killed)
     wakeListener.kill(); if (backend && !backend.killed)
     backend.kill(); });

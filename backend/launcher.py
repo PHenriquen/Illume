@@ -86,9 +86,15 @@ def ensure_ollama() -> bool:
     return ollama_available()
 
 
+def env_enabled(name: str, legacy_name: str | None = None) -> bool:
+    if os.getenv(name) == "1":
+        return True
+    return bool(legacy_name and os.getenv(legacy_name) == "1")
+
+
 def automatic_setup() -> None:
     """Só aquece componentes existentes; novos downloads exigem autorização na interface."""
-    if os.getenv("TRACE_SKIP_AUTO_SETUP") == "1":
+    if env_enabled("NOA_SKIP_AUTO_SETUP", "TRACE_SKIP_AUTO_SETUP"):
         return
     start_existing_ollama()
     if ollama_available() and model_installed():
@@ -96,7 +102,7 @@ def automatic_setup() -> None:
 
 
 def open_when_ready() -> None:
-    if os.getenv("TRACE_NO_BROWSER") == "1":
+    if env_enabled("NOA_NO_BROWSER", "TRACE_NO_BROWSER"):
         return
     for _ in range(40):
         try:

@@ -1,202 +1,133 @@
 # Noa
 
-> **Inteligência local. Presença real.**
+Noa is a Windows desktop assistant I built to experiment with local AI, automation and desktop integration without giving the model unrestricted access to the system.
 
-Noa é uma companhia digital local para Windows com conversa por texto e voz, memória persistente, leitura de documentos e ações executadas somente dentro de permissões definidas pelo usuário.
+The project uses an Electron/TypeScript interface with a Python backend, SQLite for local data and Ollama as the default local model provider.
 
-O objetivo não é criar apenas mais uma interface para modelos de linguagem. Noa reúne inteligência local, contexto autorizado, automação segura e engenharia de software desktop em uma experiência coerente e verificável.
+> **Status:** v1.0.2 — active development. The main flows work on my machine, but I am still cleaning up old TRACE identifiers and testing the installer on clean Windows environments.
 
-> **Estado atual:** versão `1.0.2` — Living Core. A base principal é funcional, mas o projeto ainda deve ser tratado como software em desenvolvimento antes de uma distribuição pública ampla.
+## What works today
 
-## Visão
+- local chat with streamed responses;
+- conversation history stored in SQLite;
+- local models through Ollama;
+- reading authorized text, code, PDF, DOCX and image files;
+- microphone input, wake-word tests and local speech output;
+- opening approved applications;
+- small routines that open a predefined set of apps;
+- TXT, PDF and DOCX export;
+- Windows packaging through Electron Builder.
 
-Noa deve ser:
-
-- **local por padrão**, mantendo histórico e dados sensíveis no dispositivo sempre que possível;
-- **transparente**, mostrando modelo ativo, estado, permissões e uso de rede;
-- **útil**, capaz de agir em aplicativos, arquivos e rotinas autorizadas;
-- **controlável**, separando sugestão, aprovação, execução e resultado;
-- **presente sem ser invasiva**, com painel completo, modo compacto e voz opcional;
-- **confiável**, explicando falhas em vez de fingir que uma ação foi concluída.
-
-Leia também [`docs/PRODUCT.md`](docs/PRODUCT.md), [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md), [`docs/BRAND.md`](docs/BRAND.md) e [`docs/ENGINEERING_LABS.md`](docs/ENGINEERING_LABS.md).
-
-## Capacidades atuais
-
-- IA local por Ollama, com modelo Qwen configurável;
-- conversa em streaming;
-- memória local em SQLite e histórico persistente;
-- entrada por texto, microfone, palavra de ativação e duas palmas opcionais;
-- resposta por voz do Windows ou mecanismo neural local;
-- painel Electron, bandeja e sobreposição compacta;
-- leitura local de texto, código, PDF, DOCX e imagens autorizadas;
-- abertura de aplicativos e rotinas a partir de uma lista permitida;
-- exportação de respostas em TXT, PDF e DOCX;
-- testes automatizados para arquitetura, permissões e resolução de aplicativos.
-
-## Princípio operacional
+## Project structure
 
 ```text
-Entender -> Planejar -> Verificar permissão -> Executar -> Confirmar -> Registrar
+Noa/
+├── src/          # TypeScript renderer and UI controllers
+├── desktop/      # Electron process, preload bridge and Windows integration
+├── backend/      # Python services, HTTP server, memory and model integration
+├── tests/        # Node tests
+├── scripts/      # setup, packaging, backup and local utilities
+├── native/       # wake listener, assets and isolated experiments
+└── docs/         # technical notes
 ```
 
-O modelo não deve receber acesso irrestrito ao computador. Ações do sistema precisam passar por contratos explícitos, allowlists, escopos de arquivo ou confirmação do usuário.
-
-## Arquitetura
+The renderer does not get direct Node.js or shell access. Native operations go through the Electron preload/IPC layer, while the Python backend handles model communication, memory, documents and voice-related services.
 
 ```text
-NOA/
-├── .github/workflows/       # validação automática
-├── backend/
-│   ├── app.py               # IA, memória, voz e documentos
-│   ├── server.py            # servidor HTTP e rotas locais
-│   ├── launcher.py          # ciclo de vida do núcleo local
-│   ├── security.py          # policy engine e auditoria assinada
-│   └── ml_intent.py         # classificador local treinável
-├── desktop/
-│   ├── main.cjs             # janelas, bandeja, IPC e integração com Windows
-│   ├── preload.cjs          # ponte segura para o renderer
-│   └── app-resolver.cjs     # resolução de aplicativos autorizados
-├── docs/                    # produto, marca, arquitetura e engenharia
-├── native/
-│   ├── assets/              # recursos nativos
-│   └── labs/                # experimentos C++ de baixo nível
-├── scripts/                 # instalação, diagnóstico, backup e build
-├── src/                     # renderer TypeScript
-└── tests/                   # testes automatizados
+TypeScript UI
+     │
+     ├── preload / IPC ──> Electron ──> approved Windows actions
+     │
+     └── local HTTP ─────> Python ─────> SQLite / Ollama / documents
 ```
 
-A arquitetura possui três superfícies principais:
+## Code I would start with
 
-1. **Renderer TypeScript:** interface, conversa, áudio e preferências;
-2. **Processo principal Electron:** janelas, bandeja, atalhos, IPC e ações nativas;
-3. **Backend Python:** IA local, memória, documentos, STT, TTS e API local.
+If you are reviewing the project, these files show the main parts of the implementation:
 
-Os laboratórios adicionam uma quarta frente experimental: **segurança aplicada, ML treinável e computação nativa C++**, sem obrigar a runtime principal a depender deles.
+- [`src/main.ts`](src/main.ts) — starts the renderer controllers;
+- [`src/app/chat.ts`](src/app/chat.ts) — chat and streaming behavior;
+- [`src/app/audio.ts`](src/app/audio.ts) — microphone and audio state;
+- [`src/app/apps.ts`](src/app/apps.ts) — approved apps and routines in the UI;
+- [`desktop/main.cjs`](desktop/main.cjs) — Electron windows, IPC and native actions;
+- [`desktop/preload.cjs`](desktop/preload.cjs) — renderer/native bridge;
+- [`backend/app.py`](backend/app.py) — local application services;
+- [`backend/server.py`](backend/server.py) — HTTP endpoints;
+- [`backend/security.py`](backend/security.py) — permission checks and audit-log experiment.
 
-## Tecnologias
+## A few decisions behind the code
 
-- **Interface:** TypeScript, Vite, HTML e CSS;
-- **Desktop:** Electron e Electron Builder;
-- **Backend:** Python 3.13;
-- **Dados:** SQLite local;
-- **IA:** Ollama/Qwen + laboratório de ML local;
-- **Voz:** Whisper.cpp, Piper e recursos do Windows;
-- **Segurança:** allowlists, escopos, consentimento, policy engine e auditoria HMAC experimental;
-- **Baixo nível:** laboratório C++ para áudio/concorrência;
-- **Qualidade:** Node Test Runner, TypeScript e GitHub Actions.
+### Keep system actions explicit
 
-## Engineering Labs
+I did not want model text to execute arbitrary shell commands. App launches and other native actions use explicit handlers, approved resources and execution results.
 
-Para ampliar o portfólio sem descaracterizar a Noa, o projeto possui experimentos isolados e executáveis:
+### Keep user data local by default
 
-- `backend/security.py`: autorização por política e trilha de auditoria encadeada com HMAC;
-- `backend/ml_intent.py`: ciclo completo de ML pequeno — dataset, treino, inferência e confiança;
-- `native/labs/audio_ring_buffer.cpp`: estrutura C++ de baixa latência com atomics e memória explícita.
+Conversation history and application data are stored locally. Ollama is the default model path, so the basic project does not depend on a remote model API.
 
-Esses módulos são **experimentais** e só devem entrar no caminho crítico da aplicação quando houver testes, benchmarks e ganho real de produto.
+### Migrate TRACE gradually
 
-## Preparação para desenvolvimento
+Noa started from an earlier prototype called TRACE. Some old names still exist in IPC channels, storage keys and packaging paths. I am replacing them gradually because a global rename can break local data and packaged builds. New renderer code prefers the Noa-facing bridge while the old name remains temporarily for compatibility.
 
-### Requisitos
+### Split code when it has a reason to change separately
 
-- Windows 10 ou 11;
-- Node.js 22 ou superior;
-- npm 10 ou superior;
-- Python 3.13 recomendado;
-- Git;
-- Ollama para o provedor local padrão.
+The frontend is already separated into chat, audio, speech, apps, system and runtime modules. `backend/app.py` is still larger than I want, so the next backend cleanup is to extract model, memory and document responsibilities one at a time instead of creating folders only to make the tree look more complex.
 
-### Instalação
+## Stack
+
+| Area | Main tools |
+|---|---|
+| Desktop | Electron, Electron Builder |
+| Frontend | TypeScript, Vite, HTML, CSS |
+| Backend | Python 3.13 |
+| Data | SQLite |
+| Local AI | Ollama / Qwen |
+| Voice | Whisper.cpp, Piper, Windows speech APIs |
+| Tests | Node Test Runner, Python `unittest` |
+
+There are also small ML/C++ experiments under `native/` and `backend/`, but they are not required by the main application.
+
+## Running locally
+
+### Requirements
+
+- Windows 10 or 11
+- Node.js 22+
+- npm 10+
+- Python 3.13
+- Ollama for the default local model
 
 ```powershell
 npm ci
 npm run check
 npm run build
-```
-
-Para abrir o aplicativo desktop:
-
-```powershell
 npm run desktop
 ```
 
-Para iniciar somente o núcleo Python:
+To start only the Python side:
 
 ```powershell
 python -m backend.launcher
 ```
 
-Para testar o classificador local treinável:
+## Tests
 
 ```powershell
-python -m backend.ml_intent
+npm run typecheck
+npm test
+python -m unittest discover -s backend/tests -p "test_*.py"
 ```
 
-## Comandos
+The tests currently cover architecture rules, app resolution, migration compatibility and the permission/audit module.
 
-| Comando | Função |
-|---|---|
-| `npm run dev` | inicia a interface Vite |
-| `npm run typecheck` | valida TypeScript |
-| `npm test` | executa testes automatizados |
-| `npm run check` | executa tipagem e testes |
-| `npm run build` | limpa e compila a interface |
-| `npm run desktop` | abre o Electron |
-| `npm run desktop:package` | gera a versão portátil para Windows |
-| `npm run desktop:installer` | gera o instalador NSIS |
-| `npm run setup:status` | verifica componentes locais |
-| `npm run setup:all` | prepara componentes opcionais |
+## Current cleanup
 
-## Dados, privacidade e segurança
+The main things I am working on now are:
 
-Por padrão, dados persistentes são mantidos no computador do usuário. O projeto não deve versionar bancos SQLite, históricos pessoais, modelos baixados, tokens, chaves, arquivos `.env`, `node_modules`, `dist` ou `release`.
+- reducing the remaining TRACE compatibility code;
+- separating responsibilities from `backend/app.py`;
+- making voice capture/interruption easier to reason about;
+- testing install/package flows on a clean Windows environment;
+- moving permission checks into more native action paths.
 
-Camadas de proteção existentes ou em evolução incluem:
-
-- renderer sem acesso direto ao Node.js;
-- API limitada no preload Electron;
-- aplicativos e arquivos autorizados por escopo;
-- confirmação proporcional ao risco;
-- comandos arbitrários não entregues diretamente ao modelo;
-- auditoria verificável como laboratório de segurança;
-- separação entre intenção, autorização, execução e resultado.
-
-## Roadmap imediato
-
-### 1. Núcleo de ações seguro
-
-- consolidar contratos tipados;
-- integrar gradualmente policy engine e auditoria;
-- adicionar testes de abuso, path traversal e permissões.
-
-### 2. Voz confiável e performance
-
-- VAD e calibração;
-- melhorar wake word e interrupção;
-- impedir listeners concorrentes;
-- medir se uma ponte C++ nativa traz benefício real ao áudio.
-
-### 3. ML local pragmático
-
-- ampliar e versionar dataset de intenções;
-- medir precisão, recall e matriz de confusão;
-- usar o classificador apenas quando superar regras simples em latência/confiabilidade.
-
-### 4. Memória controlável
-
-- separar histórico, preferências e contexto temporário;
-- permitir revisão, edição, exportação e exclusão;
-- registrar origem e finalidade de cada memória.
-
-## Limitações atuais
-
-- microfones e ambientes ruidosos ainda podem exigir calibração;
-- alguns componentes opcionais dependem de download inicial;
-- assinatura digital e atualização automática exigem infraestrutura de distribuição;
-- os laboratórios de segurança, ML e C++ ainda não fazem parte do caminho crítico de produção;
-- o aplicativo precisa ser validado em uma instalação limpa do Windows.
-
-## Licença
-
-O repositório está atualmente marcado como `UNLICENSED`. Antes de incentivar contribuições ou distribuição pública, é necessário definir uma política de licença coerente com o código, a marca Noa e os componentes de terceiros.
+More technical notes are in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) and [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md).

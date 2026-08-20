@@ -11,11 +11,9 @@
 
 ### Engenharia
 
-- Frontend dividido em controladores de domínio.
-- `src/main.ts` reduzido a composition root.
-- Backend HTTP separado dos serviços de IA.
-- Código Electron reformatado para leitura e manutenção.
-- Teste arquitetural para impedir novos arquivos monolíticos.
+- Frontend dividido em controladores menores.
+- `src/main.ts` usado apenas para iniciar e conectar os módulos.
+- Backend HTTP separado da interface desktop.
+- Testes para arquitetura, resolução de aplicativos e compatibilidade da migração.
 - GitHub Actions para tipagem, testes, build e compilação Python.
-- Remoção de dependências, builds, executáveis e relatórios antigos do pacote de código-fonte.
-- Scripts de desenvolvimento agrupados em `scripts/`.
+- Scripts de instalação e backup organizados em `scripts/windows/`.

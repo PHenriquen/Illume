@@ -1,4 +1,7 @@
-export type TraceState = "idle" | "listening" | "thinking" | "speaking" | "executing" | "error";
+export type AssistantState = "idle" | "listening" | "thinking" | "speaking" | "executing" | "error";
+
+// Compatibility alias while old TRACE identifiers are migrated safely.
+export type TraceState = AssistantState;
 
 export type Particle = {
     angle: number;
@@ -31,9 +34,9 @@ export type MicReport = {
 export type SharedEvent = {
     type: "message" | "state" | "speak" | "voice-mode" | "clear" | "interrupt" | "open-settings" | "suggestions";
     id?: string;
-    role?: "trace" | "user";
+    role?: "trace" | "noa" | "user";
     text?: string;
-    state?: TraceState;
+    state?: AssistantState;
     enabled?: boolean;
     items?: string[];
     page?: "general" | "voice" | "permissions" | "apps";
@@ -117,6 +120,7 @@ declare global {
         pywebview?: {
             api: NativeApi;
         };
+        noaNative?: NativeApi;
         traceNative?: NativeApi;
     }
 }

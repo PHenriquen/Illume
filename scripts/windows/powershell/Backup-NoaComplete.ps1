@@ -84,7 +84,7 @@ $hasOllamaRuntime = Copy-Tree $ollamaHome (Join-Path $RuntimeProgramsBackup 'Oll
 
 New-Item -ItemType Directory -Force -Path $ToolsBackup | Out-Null
 Copy-Item (Join-Path $PSScriptRoot 'Restore-NoaComplete.ps1') $ToolsBackup -Force
-Copy-Item (Join-Path $ProjectRoot 'backup-tools\RESTAURAR_NOA_COMPLETO.bat') $Destination -Force
+Copy-Item (Join-Path $ProjectRoot 'scripts\windows\RESTAURAR_NOA_COMPLETO.bat') $Destination -Force
 
 $package = Get-Content (Join-Path $ProjectRoot 'package.json') -Raw | ConvertFrom-Json
 $manifest = [ordered]@{

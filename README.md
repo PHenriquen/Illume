@@ -1,10 +1,10 @@
-# Noa
+# Lumi
 
-Noa is a Windows desktop assistant I built to experiment with local AI, automation and desktop integration without giving the model unrestricted access to the system.
+Lumi is a Windows desktop assistant I built to experiment with local AI, automation and desktop integration without giving the model unrestricted access to the system.
 
 The project uses an Electron/TypeScript interface with a Python backend, SQLite for local data and Ollama as the default local model provider.
 
-> **Status:** v1.0.2 — active development. The main flows work on my machine, but I am still cleaning up old TRACE identifiers and testing the installer on clean Windows environments.
+> **Status:** v1.0.2 — active development. The main flows work on my machine, but I am still cleaning up legacy identifiers and testing the installer on clean Windows environments.
 
 ## What works today
 
@@ -21,7 +21,7 @@ The project uses an Electron/TypeScript interface with a Python backend, SQLite 
 ## Project structure
 
 ```text
-Noa/
+Lumi/
 ├── src/          # TypeScript renderer and UI controllers
 ├── desktop/      # Electron process, preload bridge and Windows integration
 ├── backend/      # Python services, HTTP server, memory and model integration
@@ -65,9 +65,9 @@ I did not want model text to execute arbitrary shell commands. App launches and 
 
 Conversation history and application data are stored locally. Ollama is the default model path, so the basic project does not depend on a remote model API.
 
-### Migrate TRACE gradually
+### Migrate legacy names gradually
 
-Noa started from an earlier prototype called TRACE. Some old names still exist in IPC channels, storage keys and packaging paths. I am replacing them gradually because a global rename can break local data and packaged builds. New renderer code prefers the Noa-facing bridge while the old name remains temporarily for compatibility.
+Lumi was previously called **Noa** and originally evolved from an earlier prototype called **TRACE**. Some old names still exist in IPC channels, storage keys, packaging paths and migration code. I am replacing them gradually because a global rename can break local data and packaged builds. New public-facing code should use Lumi while legacy identifiers remain only where compatibility still requires them.
 
 ### Split code when it has a reason to change separately
 
@@ -124,7 +124,7 @@ The tests currently cover architecture rules, app resolution, migration compatib
 
 The main things I am working on now are:
 
-- reducing the remaining TRACE compatibility code;
+- completing the Lumi rebrand without breaking Noa/TRACE compatibility data;
 - separating responsibilities from `backend/app.py`;
 - making voice capture/interruption easier to reason about;
 - testing install/package flows on a clean Windows environment;

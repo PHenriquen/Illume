@@ -10,6 +10,23 @@ That led the project toward three priorities: clear permissions, observable acti
 
 > **Status:** v1.0.2 — active development. Core flows are functional locally, but the project is not production-ready yet.
 
+## What I built
+
+I built Noa as a desktop application rather than a thin chat interface. Most of the work has been around making several parts of the system cooperate reliably: UI state, Electron IPC, a local Python service, persistence, document handling, voice experiments and controlled native actions.
+
+Some code paths that represent the project well:
+
+- [`src/main.ts`](src/main.ts) — composition root for the TypeScript renderer and its controllers;
+- [`src/app/`](src/app/) — UI, chat, audio, speech, application and system controllers;
+- [`desktop/main.cjs`](desktop/main.cjs) — Electron lifecycle, windows, tray and native integration;
+- [`desktop/preload.cjs`](desktop/preload.cjs) — explicit IPC bridge between the renderer and native process;
+- [`backend/app.py`](backend/app.py) — local application services, model integration, memory, documents and voice;
+- [`backend/server.py`](backend/server.py) — local HTTP layer;
+- [`backend/security.py`](backend/security.py) — scoped authorization and an experimental tamper-evident audit trail;
+- [`tests/`](tests/) — automated checks for architecture, permissions and application resolution.
+
+The project has changed significantly as I tested it on Windows. Some early implementation choices are still visible in the repository, including legacy `TRACE` identifiers. I am migrating those gradually instead of doing a risky global rename that could break packaging or existing local data.
+
 ## What Noa does today
 
 - streams conversations through a local backend;
@@ -43,7 +60,7 @@ That led the project toward three priorities: clear permissions, observable acti
           SQLite / local files
 ```
 
-The project intentionally separates the interface, native desktop integration and backend services. This makes permissions easier to reason about and avoids giving the renderer direct access to Node.js or arbitrary system commands.
+I separated the interface, native desktop integration and backend services so that each boundary has a clear responsibility. In particular, the renderer does not receive direct access to Node.js or arbitrary system commands.
 
 More detail: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
@@ -59,7 +76,7 @@ The intended flow is:
 Understand -> Plan -> Check permission -> Execute -> Verify -> Record
 ```
 
-This is one of the main design constraints of the project. The goal is not to make automation look intelligent; it is to make execution **predictable and auditable**.
+I chose this constraint because a model producing a plausible answer is not evidence that an operating-system action actually succeeded. Native execution needs a deterministic path and a result that the application can verify.
 
 ### 2. Local-first data
 
@@ -67,7 +84,7 @@ Conversation history and application data stay on the user's machine by default.
 
 ### 3. Model-independent interface
 
-The desktop application is not built around a single model API. The current local provider uses Ollama/Qwen, while the rest of the application communicates through internal interfaces that can evolve independently.
+I do not want the desktop application coupled to a single model API. The current local provider uses Ollama/Qwen, while the rest of the application communicates through internal interfaces that can evolve independently.
 
 ### 4. Failure is part of the product
 
@@ -86,7 +103,7 @@ Noa should not report an action as completed simply because a model produced a p
 | Quality | Node Test Runner, TypeScript checks, GitHub Actions |
 | Experimental | small local ML classifier, C++ audio/concurrency lab |
 
-The experimental modules are intentionally isolated from the main runtime. They are used to test ideas before adding complexity to the product path.
+The experimental modules are intentionally isolated from the main runtime. I use them to test an engineering idea before deciding whether the added complexity belongs in the product path.
 
 ## Repository structure
 
@@ -141,7 +158,7 @@ npm test
 npm run check
 ```
 
-The repository also uses GitHub Actions to keep basic validation reproducible outside my development machine.
+I keep these checks in the repository because several bugs in a desktop assistant only become obvious when interfaces between modules change. GitHub Actions also runs basic validation outside my development machine.
 
 ## Current limitations
 

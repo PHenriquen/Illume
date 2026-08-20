@@ -1,4 +1,4 @@
-import type { TraceState, Particle, Attachment, Routine, SharedEvent, DetectedApp, NativeCommand } from "./types";
+import type { AssistantState, Particle, Attachment, Routine, SharedEvent, DetectedApp, NativeCommand, NativeApi } from "./types";
 
 export const $ = <T extends HTMLElement>(s: string) => document.querySelector<T>(s)!;
 
@@ -30,9 +30,13 @@ export const startupToggle = $<HTMLInputElement>("#startup-toggle");
 
 export const nativeMode = new URLSearchParams(location.search).get("native");
 
-export const nativeCall = (name: NativeCommand) => window.traceNative?.[name]?.() ?? window.pywebview?.api[name]?.();
+export function getNativeApi(): NativeApi | undefined {
+  return window.noaNative ?? window.traceNative ?? window.pywebview?.api;
+}
 
-export const broadcast = (data: SharedEvent) => window.traceNative?.broadcast?.(data);
+export const nativeCall = (name: NativeCommand) => getNativeApi()?.[name]?.();
+
+export const broadcast = (data: SharedEvent) => getNativeApi()?.broadcast?.(data);
 
 export const seenMessages = new Set<string>();
 
@@ -43,7 +47,7 @@ else if (nativeMode === "dashboard")
 
 export const store = {
   particles: ([]) as Particle[],
-  state: ("idle") as TraceState,
+  state: ("idle") as AssistantState,
   intense: false,
   lastFrame: 0,
   micLevel: 0,

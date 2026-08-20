@@ -1,5 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
-contextBridge.exposeInMainWorld('traceNative', {
+
+const nativeApi = {
     expand_overlay: () => ipcRenderer.invoke('trace:expand-overlay'),
     show_orb: () => ipcRenderer.invoke('trace:show-orb'),
     toggle_compact: () => ipcRenderer.invoke('trace:toggle-compact'),
@@ -42,4 +43,8 @@ contextBridge.exposeInMainWorld('traceNative', {
     on_start_listening: callback => ipcRenderer.on('trace:start-listening', callback),
     on_ambient_control: callback => ipcRenderer.on('trace:ambient-control', (_event, enabled) => callback(enabled)),
     on_global_command: callback => ipcRenderer.on('trace:global-command', callback)
-});
+};
+
+contextBridge.exposeInMainWorld('noaNative', nativeApi);
+// Temporary compatibility surface while old renderer code and persisted data are migrated.
+contextBridge.exposeInMainWorld('traceNative', nativeApi);

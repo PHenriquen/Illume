@@ -2,7 +2,7 @@
   "name": "trace-ai",
   "version": "1.0.2",
   "private": true,
-  "description": "Noa é uma companhia digital local para Windows com IA, voz, memória e ações autorizadas.",
+  "description": "Aplicação desktop local para Windows com backend Python, interface Electron/TypeScript, memória SQLite e automações controladas.",
   "license": "UNLICENSED",
   "repository": {
     "type": "git",

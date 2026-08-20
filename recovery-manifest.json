@@ -1,9 +1,10 @@
 {
-  "format": 1,
-  "product": "TRACE AI",
+  "format": 2,
+  "product": "Noa",
   "version": "1.0.2",
   "defaultModel": "qwen3.5:2b-q4_K_M",
-  "runtimeDataDirectory": "%LOCALAPPDATA%\\TRACE-AI",
+  "runtimeDataDirectory": "%LOCALAPPDATA%\\Noa",
+  "legacyRuntimeDataDirectory": "%LOCALAPPDATA%\\TRACE-AI",
   "ollamaModelsDirectory": "%USERPROFILE%\\.ollama\\models",
   "components": [
     "Ollama",
@@ -15,12 +16,13 @@
     "PDF/DOCX/OCR runtime",
     "SQLite memory"
   ],
-  "backupFormat": 2,
+  "backupFormat": 3,
   "backupIncludesWhenAvailable": [
     "portable application",
     "Python runtime",
     "Ollama runtime",
     "Ollama models",
-    "TRACE runtime data"
+    "Noa runtime data",
+    "legacy TRACE runtime data when present"
   ]
 }

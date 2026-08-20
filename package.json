@@ -56,19 +56,19 @@
     "extraResources": [
       {
         "from": "backend",
-        "to": "trace-core/backend"
+        "to": "noa-core/backend"
       },
       {
         "from": "dist",
-        "to": "trace-core/dist"
+        "to": "noa-core/dist"
       },
       {
         "from": "native/assets",
-        "to": "trace-core/native/assets"
+        "to": "noa-core/native/assets"
       },
       {
         "from": "native/wake-listener.ps1",
-        "to": "trace-core/native/wake-listener.ps1"
+        "to": "noa-core/native/wake-listener.ps1"
       }
     ],
     "win": {

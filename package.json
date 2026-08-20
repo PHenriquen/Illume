@@ -27,7 +27,6 @@
     "desktop": "electron .",
     "desktop:package": "npm run build && electron-builder --win --x64 --dir",
     "desktop:installer": "npm run build && electron-builder --win nsis --x64",
-    "metrics:portfolio": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/portfolio/measure.ps1",
     "setup:all": "python -m backend.setup --all",
     "setup:status": "python -m backend.setup --status",
     "backup:windows": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/windows/powershell/Backup-NoaComplete.ps1"

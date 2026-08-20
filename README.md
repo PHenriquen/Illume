@@ -1,31 +1,33 @@
 # Noa
 
-**Local desktop assistant for Windows focused on privacy, controlled automation and reliable system integration.**
+[![CI](https://github.com/PHenriquen/Noa/actions/workflows/ci.yml/badge.svg)](https://github.com/PHenriquen/Noa/actions/workflows/ci.yml)
 
-Noa is a personal software engineering project that combines a TypeScript/Electron desktop interface with a Python backend, local persistence and optional local AI models.
+**Local desktop software for Windows focused on privacy, controlled automation and reliable system integration.**
 
-I started the project to explore a practical question: **how useful can a desktop assistant become without giving a language model unrestricted access to the operating system?**
+Noa is a personal software engineering project that combines a TypeScript/Electron desktop interface, a Python backend, local persistence and optional local AI models.
 
-That led the project toward three priorities: clear permissions, observable actions and local-first data handling.
+I started it because I wanted to answer a practical question: **how useful can a desktop assistant become without giving a language model unrestricted access to the operating system?**
 
-> **Status:** v1.0.2 — active development. Core flows are functional locally, but the project is not production-ready yet.
+That question ended up shaping the project more than the model itself. Most of the engineering work is around process boundaries, permissions, native integration, persistence, failure handling and keeping several local components coordinated.
+
+> **Status:** v1.0.2 — active development. The main local flows work on my development environment, but I do not consider the project production-ready yet.
 
 ## What I built
 
-I built Noa as a desktop application rather than a thin chat interface. Most of the work has been around making several parts of the system cooperate reliably: UI state, Electron IPC, a local Python service, persistence, document handling, voice experiments and controlled native actions.
+I built Noa as a desktop application rather than a chat page connected to a model API. The parts I spend most of my time on are the boundaries between the UI, Electron, the Python core and Windows.
 
-Some code paths that represent the project well:
+Selected implementation paths:
 
-- [`src/main.ts`](src/main.ts) — composition root for the TypeScript renderer and its controllers;
-- [`src/app/`](src/app/) — UI, chat, audio, speech, application and system controllers;
-- [`desktop/main.cjs`](desktop/main.cjs) — Electron lifecycle, windows, tray and native integration;
-- [`desktop/preload.cjs`](desktop/preload.cjs) — explicit IPC bridge between the renderer and native process;
-- [`backend/app.py`](backend/app.py) — local application services, model integration, memory, documents and voice;
-- [`backend/server.py`](backend/server.py) — local HTTP layer;
+- [`src/main.ts`](src/main.ts) — composition root for the TypeScript renderer;
+- [`src/app/`](src/app/) — chat, audio, speech, applications, system state and UI controllers;
+- [`desktop/main.cjs`](desktop/main.cjs) — Electron lifecycle, windows, tray, native actions and IPC handlers;
+- [`desktop/preload.cjs`](desktop/preload.cjs) — the explicit renderer/native bridge;
+- [`backend/app.py`](backend/app.py) — local services for model access, memory, documents and voice;
+- [`backend/server.py`](backend/server.py) — local HTTP boundary;
 - [`backend/security.py`](backend/security.py) — scoped authorization and an experimental tamper-evident audit trail;
-- [`tests/`](tests/) — automated checks for architecture, permissions and application resolution.
+- [`tests/`](tests/) and [`backend/tests/`](backend/tests/) — architecture, migration, app-resolution and security behavior checks.
 
-The project has changed significantly as I tested it on Windows. Some early implementation choices are still visible in the repository, including legacy `TRACE` identifiers. I am migrating those gradually instead of doing a risky global rename that could break packaging or existing local data.
+The repository still contains some `TRACE` identifiers from the project's previous name. Instead of replacing them globally, I started a compatibility migration: new renderer code can use `noaNative` and `AssistantState`, while the old bridge/type names remain as temporary aliases. That lets me refactor without breaking packaging or persisted local data in one large rename.
 
 ## What Noa does today
 
@@ -37,58 +39,85 @@ The project has changed significantly as I tested it on Windows. Some early impl
 - opens approved applications and runs predefined local routines;
 - exports responses to TXT, PDF and DOCX;
 - packages as a Windows desktop application;
-- includes automated checks for architecture, permissions and application resolution.
+- runs automated TypeScript, architecture and backend security checks in CI.
 
 ## Architecture
 
-```text
-┌──────────────────────────────┐
-│ TypeScript / Vite Renderer   │
-│ UI, chat, audio, settings    │
-└──────────────┬───────────────┘
-               │ secure preload / IPC
-┌──────────────▼───────────────┐
-│ Electron Main Process        │
-│ windows, tray, native actions│
-└──────────────┬───────────────┘
-               │ local HTTP
-┌──────────────▼───────────────┐
-│ Python Backend               │
-│ models, memory, docs, voice  │
-└──────────────┬───────────────┘
-               │
-          SQLite / local files
+```mermaid
+flowchart TD
+    U[User] --> R[TypeScript / Vite Renderer]
+    R -->|explicit preload API| E[Electron Main Process]
+    R -->|local HTTP| P[Python Backend]
+    E --> W[Authorized Windows Actions]
+    P --> D[(SQLite / Local Files)]
+    P --> M[Ollama / Local Model]
+    E -->|execution result| R
+    P -->|streamed events| R
 ```
 
-I separated the interface, native desktop integration and backend services so that each boundary has a clear responsibility. In particular, the renderer does not receive direct access to Node.js or arbitrary system commands.
+I separated the interface, native desktop integration and backend services because they fail in different ways and should not share the same privileges. The renderer does not receive direct Node.js, filesystem or shell access.
 
-More detail: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+For a native action, the direction I am implementing is:
+
+```mermaid
+flowchart LR
+    A[Understand] --> B[Plan]
+    B --> C[Check permission]
+    C --> D[Execute]
+    D --> E[Verify result]
+    E --> F[Record / Report]
+```
+
+More detail: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) and [`docs/decisions/`](docs/decisions/).
+
+## Engineering challenges I ran into
+
+### Preventing the renderer from becoming privileged by accident
+
+Electron makes it easy to expose too much. I keep native operations behind preload methods and IPC handlers instead of giving renderer code direct access to Node.js APIs. That makes the permission surface visible and testable.
+
+### Knowing whether an action actually happened
+
+A model can say that an application opened even when the executor failed. I therefore treat native execution results separately from generated text. The long-term action pipeline is built around permission checks, deterministic executors and verification before reporting success.
+
+### Voice state getting out of sync
+
+Wake detection, microphone capture, transcription, speech playback and interruption can compete for the same audio state. I moved the renderer toward explicit state and controller boundaries rather than letting each feature start listeners independently.
+
+### Renaming a project without breaking local users
+
+Noa evolved from an earlier TRACE prototype. Some internal identifiers affect IPC, application data and packaging. I chose a compatibility migration instead of a global search-and-replace. The current `noaNative` / `traceNative` bridge alias is one small example of that approach.
 
 ## Engineering decisions
 
-### 1. Controlled actions instead of arbitrary commands
+I keep short ADRs for decisions that affect multiple modules:
 
-The assistant can propose an action, but system operations are expected to pass through explicit contracts, allowlists, file scopes or user confirmation.
+- [`ADR 001 — local-first data`](docs/decisions/001-local-first-data.md)
+- [`ADR 002 — Electron/Python boundary`](docs/decisions/002-electron-python-boundary.md)
+- [`ADR 003 — controlled native actions`](docs/decisions/003-controlled-native-actions.md)
 
-The intended flow is:
+The point of these notes is not to make the architecture look formal. I use them so I can remember *why* I made a trade-off when I revisit the code later.
 
-```text
-Understand -> Plan -> Check permission -> Execute -> Verify -> Record
+## Tests based on failure modes
+
+I prefer tests that protect behavior I could realistically break while changing the project.
+
+Examples now in the repository:
+
+- a resource outside an allowed root must be rejected;
+- an unknown action must not pass the security policy;
+- higher-risk actions can require confirmation;
+- tampering with an audit record must invalidate verification;
+- the new `noaNative` bridge must coexist with the legacy alias during migration;
+- TypeScript modules and desktop/backend entry points have size/architecture guardrails.
+
+Run the same validation used by CI:
+
+```powershell
+npm ci
+npm run check
+npm run build
 ```
-
-I chose this constraint because a model producing a plausible answer is not evidence that an operating-system action actually succeeded. Native execution needs a deterministic path and a result that the application can verify.
-
-### 2. Local-first data
-
-Conversation history and application data stay on the user's machine by default. Remote providers are not treated as invisible implementation details: if added, they should be explicit and isolated behind provider contracts.
-
-### 3. Model-independent interface
-
-I do not want the desktop application coupled to a single model API. The current local provider uses Ollama/Qwen, while the rest of the application communicates through internal interfaces that can evolve independently.
-
-### 4. Failure is part of the product
-
-Noa should not report an action as completed simply because a model produced a plausible response. Native actions are designed around execution results, error states and verification.
 
 ## Tech stack
 
@@ -100,24 +129,54 @@ Noa should not report an action as completed simply because a model produced a p
 | Data | SQLite |
 | Local AI | Ollama / Qwen |
 | Voice | Whisper.cpp, Piper, Windows speech APIs |
-| Quality | Node Test Runner, TypeScript checks, GitHub Actions |
+| Quality | Node Test Runner, Python `unittest`, TypeScript checks, GitHub Actions |
 | Experimental | small local ML classifier, C++ audio/concurrency lab |
 
-The experimental modules are intentionally isolated from the main runtime. I use them to test an engineering idea before deciding whether the added complexity belongs in the product path.
+The ML and C++ modules are experiments, not requirements for the main runtime. I keep them isolated until I can show that the extra complexity solves a real problem.
 
 ## Repository structure
 
 ```text
 NOA/
-├── backend/       # Python services, local API, memory and model integration
+├── backend/       # Python services, local API and behavior tests
 ├── desktop/       # Electron main process, preload and native integration
-├── src/           # TypeScript renderer
-├── tests/         # automated checks
-├── scripts/       # setup, diagnostics, backup and packaging helpers
+├── src/           # TypeScript renderer and controllers
+├── tests/         # Node architecture/integration guardrails
+├── scripts/       # setup, diagnostics, measurements, backup and packaging
 ├── native/        # native assets and isolated experiments
-├── docs/          # architecture, product and development notes
+├── docs/          # architecture, ADRs, product notes and demo plan
 └── .github/       # CI workflows
 ```
+
+## What I learned while building it
+
+The project started more centralized than it is today. That made early iteration fast, but it also made bugs harder to isolate as voice, document handling and native actions grew.
+
+A few lessons that changed the code:
+
+- a desktop assistant needs an execution model, not only a conversation model;
+- explicit process boundaries are worth the extra plumbing when different parts have different privileges;
+- a failure path is part of the product and should be demonstrable;
+- large renames are not harmless when identifiers leak into persisted data and packaging;
+- adding another model or framework is usually less useful than making an existing boundary easier to test.
+
+The biggest remaining technical debt is [`backend/app.py`](backend/app.py): it still owns more responsibilities than I want. I am separating model-provider, memory and document behavior gradually, with tests around each boundary instead of moving code only to make the folder tree look cleaner.
+
+## Reproducible measurements
+
+I do not publish performance numbers that I have not measured on a known machine. The repository includes a small Windows measurement script that times type checking, Node tests, backend tests and the production build, and reports the built `dist` size with environment information:
+
+```powershell
+npm run metrics:portfolio
+```
+
+This is intentionally about reproducibility rather than advertising a single number from my development PC.
+
+## Demo
+
+The repository has a short, reproducible demo plan in [`docs/PORTFOLIO_DEMO.md`](docs/PORTFOLIO_DEMO.md). The sequence is designed to show a streamed response, a controlled native action, persisted local state and a visible failure path.
+
+I will only embed a GIF/video here when it is recorded from a clean run that matches a repository commit. I prefer having no demo asset over showing a polished recording that cannot be reproduced from the code.
 
 ## Running locally
 
@@ -150,38 +209,33 @@ npm run desktop
 python -m backend.launcher
 ```
 
-## Quality checks
-
-```powershell
-npm run typecheck
-npm test
-npm run check
-```
-
-I keep these checks in the repository because several bugs in a desktop assistant only become obvious when interfaces between modules change. GitHub Actions also runs basic validation outside my development machine.
-
 ## Current limitations
 
 - voice activation still depends heavily on microphone quality and environment calibration;
 - some optional local components require an initial download;
 - the application still needs broader validation on clean Windows installations;
 - code signing and automatic updates are not configured for public distribution;
-- some older internal identifiers from the project's previous name are being migrated gradually to avoid breaking local data and packaging.
-
-I prefer keeping these limitations visible rather than presenting the project as more mature than it currently is.
+- the `TRACE` compatibility layer still exists in internal identifiers;
+- the policy/audit module is not yet in the critical execution path for every native action.
 
 ## What I am improving next
 
-- make the permission/action pipeline more explicit and testable;
+- finish the gradual `TRACE` -> Noa migration with compatibility tests;
+- integrate the permission/action policy into more execution paths;
 - improve voice-state coordination and interruption;
-- separate memory, model-provider and document services further in the Python backend;
-- strengthen abuse tests around file scopes and native actions;
-- validate installation and packaging on a clean Windows environment.
+- split model-provider, memory and document responsibilities out of `backend/app.py`;
+- add path-traversal and native-action abuse tests;
+- validate installation and packaging on a clean Windows environment;
+- record the demo sequence against a tagged commit.
+
+I track concrete work as GitHub issues instead of turning the README into a roadmap full of promises.
 
 ## Documentation
 
 - [`ARCHITECTURE.md`](docs/ARCHITECTURE.md) — system boundaries and technical decisions
+- [`decisions/`](docs/decisions/) — short architecture decision records
 - [`DEVELOPMENT.md`](docs/DEVELOPMENT.md) — local development notes
+- [`PORTFOLIO_DEMO.md`](docs/PORTFOLIO_DEMO.md) — reproducible demo sequence
 - [`PRODUCT.md`](docs/PRODUCT.md) — product direction
 - [`ENGINEERING_LABS.md`](docs/ENGINEERING_LABS.md) — isolated technical experiments
 - [`BACKUP_AND_RECOVERY.md`](docs/BACKUP_AND_RECOVERY.md) — local data and recovery strategy

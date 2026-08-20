@@ -1,5 +1,5 @@
 {
-  "name": "noa-desktop",
+  "name": "lumi-desktop",
   "version": "1.0.2",
   "private": true,
   "description": "Aplicação desktop local para Windows com backend Python, interface Electron/TypeScript, memória SQLite e automações controladas.",
@@ -44,7 +44,7 @@
   },
   "build": {
     "appId": "com.phenriquen.noa",
-    "productName": "Noa",
+    "productName": "Lumi",
     "asar": true,
     "directories": {
       "output": "release"
@@ -73,11 +73,11 @@
     ],
     "win": {
       "icon": "native/assets/noa.ico",
-      "executableName": "Noa",
+      "executableName": "Lumi",
       "target": [
         "nsis"
       ],
-      "artifactName": "Noa-Setup-${version}.${ext}"
+      "artifactName": "Lumi-Setup-${version}.${ext}"
     },
     "nsis": {
       "oneClick": false,
@@ -85,7 +85,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Noa",
+      "shortcutName": "Lumi",
       "deleteAppDataOnUninstall": false
     }
   }

@@ -12,6 +12,7 @@ const ActionRisk = Object.freeze({
 const ActionStatus = Object.freeze({
     PLANNED: 'planned',
     APPROVED: 'approved',
+    DISPATCHED: 'dispatched',
     SUCCEEDED: 'succeeded',
     FAILED: 'failed',
     CANCELLED: 'cancelled',
@@ -54,8 +55,6 @@ function sanitizeTarget(value) {
     if (!text)
         return '';
 
-    // Receipts are meant to explain what happened, not become a second copy of
-    // sensitive local data. Keep human-readable labels and strip obvious paths.
     if (/^[a-z]:[\\/]/i.test(text) || text.startsWith('\\\\') || text.startsWith('/'))
         return '<local-path>';
 

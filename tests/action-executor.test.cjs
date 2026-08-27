@@ -64,6 +64,74 @@ test('records approval when confirmation is explicit', async () => {
     assert.deepEqual(receipts.map(item => item.status), ['approved', 'dispatched', 'succeeded']);
 });
 
+test('can request confirmation at the trusted execution boundary', async () => {
+    const { executor, receipts } = harness();
+    let dispatched = false;
+
+    const result = await executor.execute({
+        action: 'capture_screen',
+        target: 'Tela principal',
+        requestConfirmation: async () => true,
+        dispatch: async () => {
+            dispatched = true;
+            return { ok: true };
+        }
+    });
+
+    assert.equal(dispatched, true);
+    assert.equal(result.ok, true);
+    assert.deepEqual(receipts.map(item => item.status), ['planned', 'approved', 'dispatched', 'succeeded']);
+});
+
+test('records cancellation and does not dispatch after native refusal', async () => {
+    const { executor, receipts } = harness();
+    let dispatched = false;
+
+    const result = await executor.execute({
+        action: 'capture_screen',
+        target: 'Tela principal',
+        requestConfirmation: async () => false,
+        dispatch: async () => {
+            dispatched = true;
+            return { ok: true };
+        }
+    });
+
+    assert.equal(dispatched, false);
+    assert.equal(result.reason, 'cancelled');
+    assert.deepEqual(receipts.map(item => item.status), ['planned', 'cancelled']);
+});
+
+test('fails safely when the native confirmation surface is unavailable', async () => {
+    const { executor, receipts } = harness();
+
+    const result = await executor.execute({
+        action: 'capture_screen',
+        requestConfirmation: async () => {
+            throw new Error('dialog unavailable');
+        },
+        dispatch: async () => ({ ok: true })
+    });
+
+    assert.equal(result.reason, 'confirmation_failed');
+    assert.deepEqual(receipts.map(item => item.status), ['planned', 'failed']);
+    assert.equal(receipts.at(-1).detail, 'confirmation_failed');
+});
+
+test('records a cancelled destination picker as cancellation, not failure', async () => {
+    const { executor, receipts } = harness();
+
+    const result = await executor.execute({
+        action: 'save_document',
+        target: 'Documento PDF',
+        confirmed: true,
+        dispatch: async () => ({ ok: false, reason: 'cancelled' })
+    });
+
+    assert.equal(result.reason, 'cancelled');
+    assert.deepEqual(receipts.map(item => item.status), ['approved', 'dispatched', 'cancelled']);
+});
+
 test('blocks forbidden actions without invoking the dispatcher', async () => {
     const { executor, receipts } = harness();
     let dispatched = false;

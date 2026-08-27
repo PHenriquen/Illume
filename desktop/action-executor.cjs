@@ -25,7 +25,7 @@ function createActionExecutor({ appendReceipt, now = () => new Date() }) {
         return receipt;
     }
 
-    async function execute({ action, target = '', source = 'renderer', confirmed = false, dispatch }) {
+    async function execute({ action, target = '', source = 'renderer', confirmed = false, requestConfirmation, dispatch }) {
         const normalizedAction = normalizeActionName(action);
         const policy = policyFor(normalizedAction);
 
@@ -34,15 +34,33 @@ function createActionExecutor({ appendReceipt, now = () => new Date() }) {
             return { ok: false, reason: 'blocked_by_policy', action: normalizedAction, risk: policy.risk };
         }
 
-        if (policy.confirmation && !confirmed) {
+        let approved = confirmed;
+        if (policy.confirmation && !approved) {
             record(normalizedAction, ActionStatus.PLANNED, target, source, 'confirmation_required');
-            return { ok: false, reason: 'confirmation_required', action: normalizedAction, risk: policy.risk };
+            if (typeof requestConfirmation !== 'function')
+                return { ok: false, reason: 'confirmation_required', action: normalizedAction, risk: policy.risk };
+
+            try {
+                approved = Boolean(await requestConfirmation({
+                    action: normalizedAction,
+                    target,
+                    risk: policy.risk
+                }));
+            }
+            catch {
+                record(normalizedAction, ActionStatus.FAILED, target, source, 'confirmation_failed');
+                return { ok: false, reason: 'confirmation_failed', action: normalizedAction, risk: policy.risk };
+            }
+            if (!approved) {
+                record(normalizedAction, ActionStatus.CANCELLED, target, source, 'user_cancelled');
+                return { ok: false, reason: 'cancelled', action: normalizedAction, risk: policy.risk };
+            }
         }
 
         if (typeof dispatch !== 'function')
             throw new TypeError('dispatch must be a function.');
 
-        if (policy.confirmation)
+        if (policy.confirmation && approved)
             record(normalizedAction, ActionStatus.APPROVED, target, source);
 
         record(normalizedAction, ActionStatus.DISPATCHED, target, source);
@@ -50,9 +68,14 @@ function createActionExecutor({ appendReceipt, now = () => new Date() }) {
         try {
             const result = await dispatch();
             const succeeded = result?.ok !== false;
+            const status = succeeded
+                ? ActionStatus.SUCCEEDED
+                : result?.reason === 'cancelled'
+                    ? ActionStatus.CANCELLED
+                    : ActionStatus.FAILED;
             record(
                 normalizedAction,
-                succeeded ? ActionStatus.SUCCEEDED : ActionStatus.FAILED,
+                status,
                 target,
                 source,
                 succeeded ? '' : String(result?.reason || 'action_failed')

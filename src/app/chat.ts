@@ -49,6 +49,24 @@ function needsScreenContext(prompt: string) {
     return /(?:nesta|nessa|essa|minha)\s+(?:tela|janela)|o que (?:está|esta) (?:na|minha) tela|veja (?:a tela|isso aqui)|(?:esse|este) erro (?:aqui|na tela)|analise (?:minha|esta) tela/i.test(prompt);
 }
 
+async function saveDocument(data: {
+    format: "pdf" | "docx" | "txt";
+    text: string;
+    bytes?: string;
+}): Promise<boolean> {
+    const result = await window.traceNative?.save_document?.(data);
+    if (result?.ok) {
+        runtime.controllers.core.setState("idle", "Documento salvo.");
+        return true;
+    }
+    if (result?.reason === "cancelled") {
+        runtime.controllers.core.setState("idle", "Salvamento cancelado.");
+        return false;
+    }
+    runtime.controllers.core.setState("error", "Não foi possível salvar o documento.");
+    return false;
+}
+
 async function performSuggestion(label: string) {
     const action = label.toLocaleLowerCase("pt-BR");
     if (action.includes("copiar")) {
@@ -59,7 +77,7 @@ async function performSuggestion(label: string) {
         if (!runtime.permissionEdits.checked)
             runtime.controllers.core.openSettings("permissions");
         else
-            void window.traceNative?.save_document?.({
+            void saveDocument({
                 format: "pdf",
                 text: runtime.store.lastTraceReply,
             });
@@ -106,7 +124,7 @@ function renderSuggestions(items: string[], share = true) {
 
 async function exportDocument(format: "pdf" | "docx" | "txt", text: string) {
     if (format !== "docx") {
-        await window.traceNative?.save_document?.({ format, text });
+        await saveDocument({ format, text });
         return;
     }
     const requestDocx = () => fetch("/api/export/docx", {
@@ -129,7 +147,7 @@ async function exportDocument(format: "pdf" | "docx" | "txt", text: string) {
     let binary = "";
     for (let offset = 0; offset < bytes.length; offset += 0x8000)
         binary += String.fromCharCode(...bytes.subarray(offset, offset + 0x8000));
-    await window.traceNative?.save_document?.({
+    await saveDocument({
         format,
         text,
         bytes: btoa(binary),
@@ -213,27 +231,30 @@ async function askTrace(prompt: string, fromVoice = false) {
         releaseInputs();
         return;
     }
-    if (screenRequested &&
-        runtime.permissionScreen.checked &&
-        runtime.approvalMode.value === "always" &&
-        !confirm("O TRACE precisa capturar a tela atual para responder. Autorizar desta vez?")) {
-        addMessage("user", cleanPrompt);
-        addMessage("trace", "Captura da tela cancelada.");
-        runtime.controllers.core.setState("idle", "Continuo disponível.");
-        releaseInputs();
-        return;
-    }
     if (screenRequested && runtime.permissionScreen.checked) {
         runtime.controllers.core.setState("thinking", "Compreendendo a tela atual…");
-        const screenAttachment = await window.traceNative?.capture_screen?.();
-        if (!screenAttachment) {
+        const capture = await window.traceNative?.capture_screen?.();
+        if (!capture || !capture.ok) {
             addMessage("user", cleanPrompt);
-            addMessage("trace", "Não consegui capturar a tela atual. Tente abrir o TRACE novamente.");
+            if (capture?.reason === "cancelled") {
+                addMessage("trace", "Captura da tela cancelada.");
+                runtime.controllers.core.setState("idle", "Continuo disponível.");
+            }
+            else {
+                addMessage("trace", "Não consegui capturar a tela atual. Tente abrir o Lumi novamente.");
+                runtime.controllers.core.setState("error", "Captura da tela indisponível.");
+            }
+            releaseInputs();
+            return;
+        }
+        if (!capture.value) {
+            addMessage("user", cleanPrompt);
+            addMessage("trace", "Não consegui capturar a tela atual. Tente abrir o Lumi novamente.");
             runtime.controllers.core.setState("error", "Captura da tela indisponível.");
             releaseInputs();
             return;
         }
-        files = [...files, screenAttachment].slice(0, 4);
+        files = [...files, capture.value].slice(0, 4);
     }
     const visiblePrompt = [
         cleanPrompt || "Analise os arquivos anexados.",

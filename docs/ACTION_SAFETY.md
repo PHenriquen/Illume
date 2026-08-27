@@ -106,3 +106,14 @@ Do not let renderer UI decide the security classification. The main Electron pro
 - `tests/action-receipt-store.test.cjs` covers persistence, ordering, bounded history, corrupted data, invalid append payloads and clearing history.
 
 The store is intentionally not wired into live IPC yet. That keeps this increment reversible and prevents persistence changes from silently changing current Lumi behavior before local Windows validation.
+
+## Estado de integração
+
+O contrato já participa de dois caminhos nativos reais:
+
+- abrir um aplicativo ou URL resolvida;
+- executar uma rotina de aplicativos autorizados.
+
+Cada tentativa registra localmente despacho e resultado, sem guardar caminhos absolutos. A interface isolada do renderer pode consultar os recibos recentes por `list_action_receipts(limit)`. O histórico fica limitado a 200 eventos e uma falha no armazenamento impede silenciosamente que uma ação seja apresentada como auditada quando não foi.
+
+Captura de tela, salvamento de documentos e outras ações de confirmação continuam fora do executor por enquanto. Elas só devem ser conectadas quando a interface tiver uma etapa de consentimento explícita e testável.

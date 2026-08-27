@@ -351,6 +351,17 @@
         </small>
        </span>
       </button>
+      <button data-settings-tab="activity" type="button">
+       <i>
+        ↻
+       </i>
+       <span>
+        Atividade
+        <small>
+         Ações e recibos
+        </small>
+       </span>
+      </button>
       <button data-settings-tab="apps" type="button">
        <i>
         ＋
@@ -643,8 +654,44 @@
          <input id="permission-edits" type="checkbox"/>
         </label>
        </div>
-       <p class="settings-note">
+      <p class="settings-note">
         Seus dados, conversas, áudio e anexos permanecem neste dispositivo.
+       </p>
+      </section>
+      <section class="settings-page" data-settings-page="activity" hidden="">
+       <div class="settings-section-title activity-heading">
+        <div>
+         <p class="eyebrow">
+          ATIVIDADE
+         </p>
+         <h3>
+          Registro local de ações
+         </h3>
+        </div>
+        <button class="secondary-button" id="refresh-activity-button" type="button">
+         ATUALIZAR
+        </button>
+       </div>
+       <div class="activity-summary" id="activity-summary">
+        <span class="activity-signal" aria-hidden="true"></span>
+        <div>
+         <strong>
+          Tudo sob seu controle
+         </strong>
+         <small id="activity-status">
+          Carregando os eventos recentes…
+         </small>
+        </div>
+       </div>
+       <div aria-live="polite" class="activity-list" id="activity-list">
+        <div class="activity-empty">
+         <span>◇</span>
+         <strong>Nenhuma ação registrada</strong>
+         <small>Quando o Lumi abrir um aplicativo ou executar uma rotina, o resultado aparecerá aqui.</small>
+        </div>
+       </div>
+       <p class="settings-note">
+        Este histórico fica somente no computador. Caminhos locais são ocultados antes do registro.
        </p>
       </section>
       <section class="settings-page" data-settings-page="apps" hidden="">
@@ -901,4 +948,3 @@
   </script>
  </body>
 </html>
-

@@ -1,6 +1,7 @@
 import "./style.css";
 
 import { appsController } from "./app/apps";
+import { activityController } from "./app/activity";
 import { audioController } from "./app/audio";
 import { initializeApp } from "./app/bootstrap";
 import { chatController } from "./app/chat";
@@ -19,6 +20,7 @@ attachControllers({
   speech: speechController,
   system: systemController,
   apps: appsController,
+  activity: activityController,
 });
 
 initializeApp();

@@ -131,7 +131,13 @@ export function initializeApp(): void {
   });
   document
       .querySelectorAll<HTMLButtonElement>("[data-settings-tab]")
-      .forEach((button) => button.addEventListener("click", () => runtime.controllers.core.showSettingsPage(button.dataset.settingsTab as SettingsPage)));
+      .forEach((button) => button.addEventListener("click", () => {
+          const page = button.dataset.settingsTab as SettingsPage;
+          runtime.controllers.core.showSettingsPage(page);
+          if (page === "activity")
+              void runtime.controllers.activity.refresh();
+      }));
+  runtime.$("#refresh-activity-button").addEventListener("click", () => void runtime.controllers.activity.refresh());
   runtime.$<HTMLInputElement>("#app-search").addEventListener("input", runtime.controllers.apps.renderDetectedApps);
   runtime.$("#rescan-apps-button").addEventListener("click", () => void runtime.controllers.apps.refreshAuthorizedApps());
   runtime.$("#authorize-app-button").addEventListener("click", async () => {
@@ -317,6 +323,7 @@ export function initializeApp(): void {
   void runtime.controllers.system.health();
   void runtime.controllers.apps.refreshAuthorizedApps();
   void runtime.controllers.apps.refreshRoutines();
+  void runtime.controllers.activity.refresh();
   void runtime.controllers.chat.loadHistory();
   if (runtime.nativeMode === "dashboard")
       window.traceNative?.on_mic?.((data) => {

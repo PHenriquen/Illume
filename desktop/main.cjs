@@ -338,6 +338,23 @@ async function capturePrimaryScreen() {
         return null;
     }
 }
+async function confirmDesktopAction(message, detail) {
+    const options = {
+        type: 'question',
+        title: `Confirmar ação · ${PRODUCT_NAME}`,
+        message,
+        detail,
+        buttons: ['Autorizar desta vez', 'Cancelar'],
+        defaultId: 1,
+        cancelId: 1,
+        noLink: true
+    };
+    const parent = BrowserWindow.getFocusedWindow();
+    const result = parent
+        ? await dialog.showMessageBox(parent, options)
+        : await dialog.showMessageBox(options);
+    return result.response === 0;
+}
 async function generateDiagnostic() {
     const memory = await process.getProcessMemoryInfo().catch(() => ({ workingSetSize: 0, privateBytes: 0 }));
     const report = {
@@ -430,7 +447,21 @@ ipcMain.handle('trace:sleep-assistant', () => sleepAssistant());
 ipcMain.handle('trace:collapse-overlay', () => { hideOverlay(); return true; });
 ipcMain.handle('trace:show-dashboard', () => { showDashboard(); return true; });
 ipcMain.handle('trace:enter-compact', () => { enterCompact(); return true; });
-ipcMain.handle('trace:capture-screen', () => capturePrimaryScreen());
+ipcMain.handle('trace:capture-screen', () => getActionExecutor().execute({
+    action: 'capture_screen',
+    target: 'Tela principal',
+    source: 'desktop',
+    requestConfirmation: () => confirmDesktopAction(
+        'Permitir que o Lumi capture a tela atual?',
+        'A imagem será usada somente nesta solicitação e processada de acordo com as permissões locais.'
+    ),
+    dispatch: async () => {
+        const attachment = await capturePrimaryScreen();
+        return attachment
+            ? { ok: true, value: attachment }
+            : { ok: false, reason: 'capture_failed' };
+    }
+}));
 ipcMain.handle('trace:generate-diagnostic', () => generateDiagnostic());
 ipcMain.handle('trace:calibrate-claps', () => { if (overlay && !overlay.isDestroyed())
     overlay.webContents.send('trace:clap-calibration', 'start'); return true; });
@@ -457,26 +488,42 @@ ipcMain.handle('trace:select-files', async () => {
     }
     return files;
 });
-ipcMain.handle('trace:save-document', async (_event, data) => {
+ipcMain.handle('trace:save-document', (_event, data) => {
     const format = ['pdf', 'docx'].includes(data?.format) ? data.format : 'txt';
-    const filters = format === 'pdf' ? [{ name: 'PDF', extensions: ['pdf'] }] : format === 'docx' ? [{ name: 'Word', extensions: ['docx'] }] : [{ name: 'Texto', extensions: ['txt', 'md'] }];
-    const result = await dialog.showSaveDialog(dashboard, { title: `Salvar resposta da ${PRODUCT_NAME}`, defaultPath: `resposta-noa.${format}`, filters });
-    if (result.canceled || !result.filePath)
-        return false;
-    const content = String(data?.text || '');
-    if (format === 'docx' && data?.bytes) {
-        fs.writeFileSync(result.filePath, Buffer.from(String(data.bytes), 'base64'));
-    }
-    else if (format === 'pdf') {
-        const printWindow = new BrowserWindow({ show: false, webPreferences: { sandbox: true } });
-        const escaped = content.replace(/[&<>]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[char]));
-        await printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`<style>body{font:15px/1.6 Segoe UI,sans-serif;color:#17202a;padding:40px;white-space:pre-wrap}h1{font-size:20px}</style><h1>Documento revisado pela Noa</h1><div>${escaped}</div>`)}`);
-        fs.writeFileSync(result.filePath, await printWindow.webContents.printToPDF({ printBackground: true, pageSize: 'A4' }));
-        printWindow.destroy();
-    }
-    else
-        fs.writeFileSync(result.filePath, content, 'utf8');
-    return true;
+    const label = format === 'pdf' ? 'PDF' : format === 'docx' ? 'Word' : 'texto';
+    return getActionExecutor().execute({
+        action: 'save_document',
+        target: `Documento ${label}`,
+        source: 'desktop',
+        requestConfirmation: () => confirmDesktopAction(
+            `Permitir que o Lumi salve este documento em formato ${label}?`,
+            'Depois da autorização, você ainda escolherá o nome e o destino do arquivo.'
+        ),
+        dispatch: async () => {
+            const filters = format === 'pdf' ? [{ name: 'PDF', extensions: ['pdf'] }] : format === 'docx' ? [{ name: 'Word', extensions: ['docx'] }] : [{ name: 'Texto', extensions: ['txt', 'md'] }];
+            const result = await dialog.showSaveDialog(dashboard, { title: `Salvar resposta da ${PRODUCT_NAME}`, defaultPath: `resposta-noa.${format}`, filters });
+            if (result.canceled || !result.filePath)
+                return { ok: false, reason: 'cancelled' };
+            const content = String(data?.text || '');
+            if (format === 'docx' && data?.bytes) {
+                fs.writeFileSync(result.filePath, Buffer.from(String(data.bytes), 'base64'));
+            }
+            else if (format === 'pdf') {
+                const printWindow = new BrowserWindow({ show: false, webPreferences: { sandbox: true } });
+                try {
+                    const escaped = content.replace(/[&<>]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[char]));
+                    await printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`<style>body{font:15px/1.6 Segoe UI,sans-serif;color:#17202a;padding:40px;white-space:pre-wrap}h1{font-size:20px}</style><h1>Documento revisado pela Noa</h1><div>${escaped}</div>`)}`);
+                    fs.writeFileSync(result.filePath, await printWindow.webContents.printToPDF({ printBackground: true, pageSize: 'A4' }));
+                }
+                finally {
+                    printWindow.destroy();
+                }
+            }
+            else
+                fs.writeFileSync(result.filePath, content, 'utf8');
+            return { ok: true };
+        }
+    });
 });
 ipcMain.handle('trace:select-app', async () => { const result = await dialog.showOpenDialog(dashboard, { title: 'Autorizar aplicativo', properties: ['openFile'], filters: [{ name: 'Aplicativos Windows', extensions: ['exe', 'lnk'] }] }); if (result.canceled)
     return null; const appPath = result.filePaths[0], item = { name: path.basename(appPath, path.extname(appPath)), path: appPath }; if (!approvedApps.some(entry => entry.path === appPath)) {

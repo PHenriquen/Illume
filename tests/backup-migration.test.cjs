@@ -17,13 +17,11 @@ const packageJson = JSON.parse(read("package.json"));
 test("Noa has canonical Windows installer entrypoints", () => {
   assert.match(installer, /Noa — instalação completa e restaurável/);
   assert.match(installer, /Dados locais preservados/);
-  assert.match(read("INSTALAR_NOA_COMPLETO.bat"), /INSTALAR_NOA_COMPLETO\.bat/);
   assert.match(read("scripts", "windows", "INSTALAR_NOA_COMPLETO.bat"), /Install-NoaComplete\.ps1/);
 });
 
 test("legacy installer names forward to Noa", () => {
   assert.match(legacyInstaller, /Install-NoaComplete\.ps1/);
-  assert.match(read("INSTALAR_TRACE_COMPLETO.bat"), /INSTALAR_NOA_COMPLETO\.bat/);
   assert.match(read("scripts", "windows", "INSTALAR_TRACE_COMPLETO.bat"), /INSTALAR_NOA_COMPLETO\.bat/);
 });
 

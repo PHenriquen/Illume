@@ -37,8 +37,6 @@ try {
     'trace descanse',
     'acorde tracer',
     'acorda tracer',
-    'e ai tracer',
-    'e aí tracer',
     'descanse tracer',
     'tracer descanse'
   ))

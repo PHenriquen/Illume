@@ -5,6 +5,8 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const { resolveLaunchRequest } = require('./app-resolver.cjs');
+const { createActionExecutor } = require('./action-executor.cjs');
+const { createReceiptStore } = require('./action-receipt-store.cjs');
 const PORT = 8710;
 const URL = `http://127.0.0.1:${PORT}`;
 const PRODUCT_NAME = 'Noa';
@@ -34,6 +36,22 @@ function coreDirectory() {
 }
 function appRegistryPath() { return path.join(app.getPath('userData'), 'approved-apps.json'); }
 function routineRegistryPath() { return path.join(app.getPath('userData'), 'routines.json'); }
+function actionReceiptPath() { return path.join(app.getPath('userData'), 'action-receipts.json'); }
+let actionReceiptStore = null;
+let actionExecutor = null;
+function getActionReceiptStore() {
+    if (!actionReceiptStore)
+        actionReceiptStore = createReceiptStore(actionReceiptPath(), { maxEntries: 200 });
+    return actionReceiptStore;
+}
+function getActionExecutor() {
+    if (!actionExecutor) {
+        actionExecutor = createActionExecutor({
+            appendReceipt: receipt => getActionReceiptStore().append(receipt)
+        });
+    }
+    return actionExecutor;
+}
 function loadApprovedApps() { try {
     approvedApps = JSON.parse(fs.readFileSync(appRegistryPath(), 'utf8')).filter(item => item && (item.kind === 'uwp' || fs.existsSync(item.path)));
 }
@@ -320,6 +338,23 @@ async function capturePrimaryScreen() {
         return null;
     }
 }
+async function confirmDesktopAction(message, detail) {
+    const options = {
+        type: 'question',
+        title: `Confirmar ação · ${PRODUCT_NAME}`,
+        message,
+        detail,
+        buttons: ['Autorizar desta vez', 'Cancelar'],
+        defaultId: 1,
+        cancelId: 1,
+        noLink: true
+    };
+    const parent = BrowserWindow.getFocusedWindow();
+    const result = parent
+        ? await dialog.showMessageBox(parent, options)
+        : await dialog.showMessageBox(options);
+    return result.response === 0;
+}
 async function generateDiagnostic() {
     const memory = await process.getProcessMemoryInfo().catch(() => ({ workingSetSize: 0, privateBytes: 0 }));
     const report = {
@@ -341,7 +376,7 @@ async function runRoutine(query) {
     const text = String(query || '').toLocaleLowerCase('pt-BR');
     const routine = routines.find(item => text.includes(item.name.toLocaleLowerCase('pt-BR')));
     if (!routine)
-        return { ok: false };
+        return { ok: false, reason: 'not_found' };
     const opened = [];
     for (const appName of routine.apps) {
         const found = approvedApps.find(item => item.name === appName);
@@ -412,7 +447,21 @@ ipcMain.handle('trace:sleep-assistant', () => sleepAssistant());
 ipcMain.handle('trace:collapse-overlay', () => { hideOverlay(); return true; });
 ipcMain.handle('trace:show-dashboard', () => { showDashboard(); return true; });
 ipcMain.handle('trace:enter-compact', () => { enterCompact(); return true; });
-ipcMain.handle('trace:capture-screen', () => capturePrimaryScreen());
+ipcMain.handle('trace:capture-screen', () => getActionExecutor().execute({
+    action: 'capture_screen',
+    target: 'Tela principal',
+    source: 'desktop',
+    requestConfirmation: () => confirmDesktopAction(
+        'Permitir que o Lumi capture a tela atual?',
+        'A imagem será usada somente nesta solicitação e processada de acordo com as permissões locais.'
+    ),
+    dispatch: async () => {
+        const attachment = await capturePrimaryScreen();
+        return attachment
+            ? { ok: true, value: attachment }
+            : { ok: false, reason: 'capture_failed' };
+    }
+}));
 ipcMain.handle('trace:generate-diagnostic', () => generateDiagnostic());
 ipcMain.handle('trace:calibrate-claps', () => { if (overlay && !overlay.isDestroyed())
     overlay.webContents.send('trace:clap-calibration', 'start'); return true; });
@@ -439,26 +488,42 @@ ipcMain.handle('trace:select-files', async () => {
     }
     return files;
 });
-ipcMain.handle('trace:save-document', async (_event, data) => {
+ipcMain.handle('trace:save-document', (_event, data) => {
     const format = ['pdf', 'docx'].includes(data?.format) ? data.format : 'txt';
-    const filters = format === 'pdf' ? [{ name: 'PDF', extensions: ['pdf'] }] : format === 'docx' ? [{ name: 'Word', extensions: ['docx'] }] : [{ name: 'Texto', extensions: ['txt', 'md'] }];
-    const result = await dialog.showSaveDialog(dashboard, { title: `Salvar resposta da ${PRODUCT_NAME}`, defaultPath: `resposta-noa.${format}`, filters });
-    if (result.canceled || !result.filePath)
-        return false;
-    const content = String(data?.text || '');
-    if (format === 'docx' && data?.bytes) {
-        fs.writeFileSync(result.filePath, Buffer.from(String(data.bytes), 'base64'));
-    }
-    else if (format === 'pdf') {
-        const printWindow = new BrowserWindow({ show: false, webPreferences: { sandbox: true } });
-        const escaped = content.replace(/[&<>]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[char]));
-        await printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`<style>body{font:15px/1.6 Segoe UI,sans-serif;color:#17202a;padding:40px;white-space:pre-wrap}h1{font-size:20px}</style><h1>Documento revisado pela Noa</h1><div>${escaped}</div>`)}`);
-        fs.writeFileSync(result.filePath, await printWindow.webContents.printToPDF({ printBackground: true, pageSize: 'A4' }));
-        printWindow.destroy();
-    }
-    else
-        fs.writeFileSync(result.filePath, content, 'utf8');
-    return true;
+    const label = format === 'pdf' ? 'PDF' : format === 'docx' ? 'Word' : 'texto';
+    return getActionExecutor().execute({
+        action: 'save_document',
+        target: `Documento ${label}`,
+        source: 'desktop',
+        requestConfirmation: () => confirmDesktopAction(
+            `Permitir que o Lumi salve este documento em formato ${label}?`,
+            'Depois da autorização, você ainda escolherá o nome e o destino do arquivo.'
+        ),
+        dispatch: async () => {
+            const filters = format === 'pdf' ? [{ name: 'PDF', extensions: ['pdf'] }] : format === 'docx' ? [{ name: 'Word', extensions: ['docx'] }] : [{ name: 'Texto', extensions: ['txt', 'md'] }];
+            const result = await dialog.showSaveDialog(dashboard, { title: `Salvar resposta da ${PRODUCT_NAME}`, defaultPath: `resposta-noa.${format}`, filters });
+            if (result.canceled || !result.filePath)
+                return { ok: false, reason: 'cancelled' };
+            const content = String(data?.text || '');
+            if (format === 'docx' && data?.bytes) {
+                fs.writeFileSync(result.filePath, Buffer.from(String(data.bytes), 'base64'));
+            }
+            else if (format === 'pdf') {
+                const printWindow = new BrowserWindow({ show: false, webPreferences: { sandbox: true } });
+                try {
+                    const escaped = content.replace(/[&<>]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[char]));
+                    await printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`<style>body{font:15px/1.6 Segoe UI,sans-serif;color:#17202a;padding:40px;white-space:pre-wrap}h1{font-size:20px}</style><h1>Documento revisado pela Noa</h1><div>${escaped}</div>`)}`);
+                    fs.writeFileSync(result.filePath, await printWindow.webContents.printToPDF({ printBackground: true, pageSize: 'A4' }));
+                }
+                finally {
+                    printWindow.destroy();
+                }
+            }
+            else
+                fs.writeFileSync(result.filePath, content, 'utf8');
+            return { ok: true };
+        }
+    });
 });
 ipcMain.handle('trace:select-app', async () => { const result = await dialog.showOpenDialog(dashboard, { title: 'Autorizar aplicativo', properties: ['openFile'], filters: [{ name: 'Aplicativos Windows', extensions: ['exe', 'lnk'] }] }); if (result.canceled)
     return null; const appPath = result.filePaths[0], item = { name: path.basename(appPath, path.extname(appPath)), path: appPath }; if (!approvedApps.some(entry => entry.path === appPath)) {
@@ -485,19 +550,28 @@ ipcMain.handle('trace:launch-app', async (_event, query) => {
         const resolved = resolveLaunchRequest(query, approvedApps);
         if (!resolved)
             return { ok: false, reason: 'not_found' };
-        if (resolved.type === 'external')
-            await shell.openExternal(resolved.target);
-        else if (resolved.type === 'uwp') {
-            const error = await launchApprovedApp({ path: resolved.target, kind: 'uwp' });
-            if (error)
-                return { ok: false, reason: 'launch_failed', name: resolved.name, detail: error };
-        }
-        else {
-            const error = await shell.openPath(resolved.target);
-            if (error)
-                return { ok: false, reason: 'launch_failed', name: resolved.name, detail: error };
-        }
-        return { ok: true, name: resolved.name };
+
+        const action = resolved.type === 'external' ? 'open_url' : 'launch_app';
+        return getActionExecutor().execute({
+            action,
+            target: resolved.name,
+            source: 'desktop',
+            dispatch: async () => {
+                if (resolved.type === 'external')
+                    await shell.openExternal(resolved.target);
+                else if (resolved.type === 'uwp') {
+                    const error = await launchApprovedApp({ path: resolved.target, kind: 'uwp' });
+                    if (error)
+                        return { ok: false, reason: 'launch_failed', name: resolved.name, detail: error };
+                }
+                else {
+                    const error = await shell.openPath(resolved.target);
+                    if (error)
+                        return { ok: false, reason: 'launch_failed', name: resolved.name, detail: error };
+                }
+                return { ok: true, name: resolved.name };
+            }
+        });
     }
     catch (error) {
         return { ok: false, reason: 'launch_failed', detail: String(error?.message || error) };
@@ -507,7 +581,13 @@ ipcMain.handle('trace:list-routines', () => routines);
 ipcMain.handle('trace:save-routine', (_event, data) => { const name = String(data?.name || '').trim().slice(0, 40), apps = Array.isArray(data?.apps) ? data.apps.filter(appName => approvedApps.some(item => item.name === appName)).slice(0, 10) : []; if (!name || !apps.length)
     return false; routines = routines.filter(item => item.name.toLocaleLowerCase('pt-BR') !== name.toLocaleLowerCase('pt-BR')); routines.push({ name, apps }); saveRoutines(); return true; });
 ipcMain.handle('trace:delete-routine', (_event, name) => { routines = routines.filter(item => item.name !== name); saveRoutines(); return true; });
-ipcMain.handle('trace:run-routine', (_event, query) => runRoutine(query));
+ipcMain.handle('trace:run-routine', (_event, query) => getActionExecutor().execute({
+    action: 'run_routine',
+    target: String(query || '').trim().slice(0, 80),
+    source: 'desktop',
+    dispatch: () => runRoutine(query)
+}));
+ipcMain.handle('trace:list-action-receipts', (_event, limit) => getActionReceiptStore().recent(limit));
 ipcMain.handle('trace:mic-level', (_event, data) => {
     runtimeState = { ...runtimeState, micLevel: Number(data?.level || 0), ...(data?.status ? { micStatus: String(data.status) } : {}) };
     if (dashboard && !dashboard.isDestroyed())

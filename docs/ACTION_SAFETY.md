@@ -95,7 +95,7 @@ The renderer receives only a read-only, redacted list through the preload bridge
 2. Add bounded local receipt persistence and a status that distinguishes dispatch from verified success. **Done in this branch.**
 3. Wrap `launch_app` and `run_routine` first; these are low-risk and make good instrumentation targets. **Done in this branch.**
 4. Add a read-only history UI fed by main-process IPC. **Done in this branch.**
-5. Route `capture_screen` and `save_document` through explicit confirmation gates.
+5. Route `capture_screen` and `save_document` through explicit confirmation gates. **Done in this branch.**
 6. Only then expand the model/tool surface to communication, browser form submission or file mutation.
 
 Do not let renderer UI decide the security classification. The main Electron process must remain the enforcement point.
@@ -118,4 +118,6 @@ Cada tentativa registra localmente despacho e resultado, sem guardar caminhos ab
 
 Configurações agora inclui a página **Atividade**, com resumo, estado vazio, indisponibilidade web, falhas destacadas e uma linha do tempo dos 30 eventos mais recentes. A interface nunca injeta o conteúdo do recibo como HTML.
 
-Captura de tela, salvamento de documentos e outras ações de confirmação continuam fora do executor por enquanto. Elas só devem ser conectadas quando a interface tiver uma etapa de consentimento explícita e testável.
+Captura de tela e salvamento de documentos passam pelo executor e abrem uma confirmação nativa controlada pelo processo Electron. A permissão geral continua definindo se o recurso pode ser solicitado, mas não substitui a aprovação de cada tentativa. Cancelar a confirmação ou o seletor de destino gera um recibo de cancelamento, não uma falha falsa.
+
+Outras ações sensíveis continuam fora do executor até terem um fluxo equivalente e testável.

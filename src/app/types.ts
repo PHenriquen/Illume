@@ -38,6 +38,23 @@ export type ActionReceipt = {
     detail: string;
 };
 
+export type NativeActionFailure =
+    | "confirmation_required"
+    | "confirmation_failed"
+    | "cancelled"
+    | "capture_failed"
+    | "save_failed"
+    | "action_failed";
+
+export type NativeActionResult<T = never> = {
+    ok: true;
+    value?: T;
+} | {
+    ok: false;
+    reason: NativeActionFailure;
+    detail?: string;
+};
+
 export type MicReport = {
     level: number;
     status?: string;
@@ -71,7 +88,7 @@ export type NativeApi = {
     toggle_compact_visibility?: () => Promise<boolean>;
     wake_compact?: () => Promise<boolean>;
     sleep_assistant?: () => Promise<boolean>;
-    capture_screen?: () => Promise<Attachment | null>;
+    capture_screen?: () => Promise<NativeActionResult<Attachment>>;
     generate_diagnostic?: () => Promise<boolean>;
     calibrate_claps?: () => Promise<boolean>;
     reset_claps?: () => Promise<boolean>;
@@ -86,7 +103,7 @@ export type NativeApi = {
         format: "pdf" | "docx" | "txt";
         text: string;
         bytes?: string;
-    }) => Promise<boolean>;
+    }) => Promise<NativeActionResult>;
     select_app?: () => Promise<{
         name: string;
     } | null>;

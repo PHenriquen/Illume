@@ -335,7 +335,7 @@ export function initializeApp(): void {
       if (event.type === "interrupt")
           runtime.controllers.audio.interruptInteraction();
       else if (event.type === "message" && event.role && event.text && event.id)
-          runtime.controllers.chat.addMessage(event.role, event.text, false, event.id);
+          runtime.controllers.chat.addMessage(event.role === "user" ? "user" : "trace", event.text, false, event.id);
       else if (event.type === "state" && event.state)
           runtime.controllers.core.setState(event.state, event.text, false);
       else if (event.type === "speak" && event.text && runtime.nativeMode === "overlay")

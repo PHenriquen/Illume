@@ -26,6 +26,18 @@ export type Routine = {
     apps: string[];
 };
 
+export type ActionReceipt = {
+    id: string;
+    timestamp: string;
+    action: string;
+    status: "planned" | "approved" | "dispatched" | "succeeded" | "failed" | "cancelled" | "blocked";
+    risk: "passive" | "low" | "confirm" | "blocked";
+    confirmationRequired: boolean;
+    source: string;
+    target: string;
+    detail: string;
+};
+
 export type MicReport = {
     level: number;
     status?: string;
@@ -97,6 +109,7 @@ export type NativeApi = {
         name?: string;
         opened?: string[];
     }>;
+    list_action_receipts?: (limit?: number) => Promise<ActionReceipt[]>;
     report_mic?: (level: number, status?: string) => Promise<boolean>;
     on_mic?: (callback: (data: MicReport) => void) => void;
     broadcast?: (data: SharedEvent) => Promise<boolean>;
@@ -127,7 +140,7 @@ declare global {
 
 export type NativeCommand = "expand_overlay" | "show_orb" | "collapse_overlay" | "show_dashboard" | "enter_compact" | "toggle_compact" | "toggle_wake" | "toggle_compact_visibility" | "wake_compact" | "sleep_assistant";
 
-export type SettingsPage = "general" | "voice" | "permissions" | "apps" | "system";
+export type SettingsPage = "general" | "voice" | "permissions" | "activity" | "apps" | "system";
 
 export type Health = {
     ollama: boolean;

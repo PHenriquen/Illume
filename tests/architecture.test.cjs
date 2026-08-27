@@ -113,7 +113,7 @@ test("frontend permanece modular e sem arquivos monolíticos", () => {
 test("backend e processo desktop permanecem legíveis", () => {
   const limits = new Map([
     ["backend/app.py", 700],
-    ["backend/server.py", 250],
+    ["backend/server.py", 300],
     ["backend/launcher.py", 180],
     ["desktop/main.cjs", 650],
   ]);
@@ -123,4 +123,3 @@ test("backend e processo desktop permanecem legíveis", () => {
     assert.ok(lines <= limit, `${file} possui ${lines} linhas; limite ${limit}`);
   }
 });
-

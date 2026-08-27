@@ -5,6 +5,8 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const { resolveLaunchRequest } = require('./app-resolver.cjs');
+const { createActionExecutor } = require('./action-executor.cjs');
+const { createReceiptStore } = require('./action-receipt-store.cjs');
 const PORT = 8710;
 const URL = `http://127.0.0.1:${PORT}`;
 const PRODUCT_NAME = 'Noa';
@@ -34,6 +36,22 @@ function coreDirectory() {
 }
 function appRegistryPath() { return path.join(app.getPath('userData'), 'approved-apps.json'); }
 function routineRegistryPath() { return path.join(app.getPath('userData'), 'routines.json'); }
+function actionReceiptPath() { return path.join(app.getPath('userData'), 'action-receipts.json'); }
+let actionReceiptStore = null;
+let actionExecutor = null;
+function getActionReceiptStore() {
+    if (!actionReceiptStore)
+        actionReceiptStore = createReceiptStore(actionReceiptPath(), { maxEntries: 200 });
+    return actionReceiptStore;
+}
+function getActionExecutor() {
+    if (!actionExecutor) {
+        actionExecutor = createActionExecutor({
+            appendReceipt: receipt => getActionReceiptStore().append(receipt)
+        });
+    }
+    return actionExecutor;
+}
 function loadApprovedApps() { try {
     approvedApps = JSON.parse(fs.readFileSync(appRegistryPath(), 'utf8')).filter(item => item && (item.kind === 'uwp' || fs.existsSync(item.path)));
 }
@@ -341,7 +359,7 @@ async function runRoutine(query) {
     const text = String(query || '').toLocaleLowerCase('pt-BR');
     const routine = routines.find(item => text.includes(item.name.toLocaleLowerCase('pt-BR')));
     if (!routine)
-        return { ok: false };
+        return { ok: false, reason: 'not_found' };
     const opened = [];
     for (const appName of routine.apps) {
         const found = approvedApps.find(item => item.name === appName);
@@ -485,19 +503,28 @@ ipcMain.handle('trace:launch-app', async (_event, query) => {
         const resolved = resolveLaunchRequest(query, approvedApps);
         if (!resolved)
             return { ok: false, reason: 'not_found' };
-        if (resolved.type === 'external')
-            await shell.openExternal(resolved.target);
-        else if (resolved.type === 'uwp') {
-            const error = await launchApprovedApp({ path: resolved.target, kind: 'uwp' });
-            if (error)
-                return { ok: false, reason: 'launch_failed', name: resolved.name, detail: error };
-        }
-        else {
-            const error = await shell.openPath(resolved.target);
-            if (error)
-                return { ok: false, reason: 'launch_failed', name: resolved.name, detail: error };
-        }
-        return { ok: true, name: resolved.name };
+
+        const action = resolved.type === 'external' ? 'open_url' : 'launch_app';
+        return getActionExecutor().execute({
+            action,
+            target: resolved.name,
+            source: 'desktop',
+            dispatch: async () => {
+                if (resolved.type === 'external')
+                    await shell.openExternal(resolved.target);
+                else if (resolved.type === 'uwp') {
+                    const error = await launchApprovedApp({ path: resolved.target, kind: 'uwp' });
+                    if (error)
+                        return { ok: false, reason: 'launch_failed', name: resolved.name, detail: error };
+                }
+                else {
+                    const error = await shell.openPath(resolved.target);
+                    if (error)
+                        return { ok: false, reason: 'launch_failed', name: resolved.name, detail: error };
+                }
+                return { ok: true, name: resolved.name };
+            }
+        });
     }
     catch (error) {
         return { ok: false, reason: 'launch_failed', detail: String(error?.message || error) };
@@ -507,7 +534,13 @@ ipcMain.handle('trace:list-routines', () => routines);
 ipcMain.handle('trace:save-routine', (_event, data) => { const name = String(data?.name || '').trim().slice(0, 40), apps = Array.isArray(data?.apps) ? data.apps.filter(appName => approvedApps.some(item => item.name === appName)).slice(0, 10) : []; if (!name || !apps.length)
     return false; routines = routines.filter(item => item.name.toLocaleLowerCase('pt-BR') !== name.toLocaleLowerCase('pt-BR')); routines.push({ name, apps }); saveRoutines(); return true; });
 ipcMain.handle('trace:delete-routine', (_event, name) => { routines = routines.filter(item => item.name !== name); saveRoutines(); return true; });
-ipcMain.handle('trace:run-routine', (_event, query) => runRoutine(query));
+ipcMain.handle('trace:run-routine', (_event, query) => getActionExecutor().execute({
+    action: 'run_routine',
+    target: String(query || '').trim().slice(0, 80),
+    source: 'desktop',
+    dispatch: () => runRoutine(query)
+}));
+ipcMain.handle('trace:list-action-receipts', (_event, limit) => getActionReceiptStore().recent(limit));
 ipcMain.handle('trace:mic-level', (_event, data) => {
     runtimeState = { ...runtimeState, micLevel: Number(data?.level || 0), ...(data?.status ? { micStatus: String(data.status) } : {}) };
     if (dashboard && !dashboard.isDestroyed())

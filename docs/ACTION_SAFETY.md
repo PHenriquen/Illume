@@ -87,14 +87,14 @@ Absolute local paths are redacted by the shared helper. Receipts are for account
 - invalid objects are ignored on load;
 - no conversation text, file contents or raw local paths are added by the store itself.
 
-The store deliberately has no renderer access yet. The main Electron process remains the future enforcement and persistence boundary.
+The renderer receives only a read-only, redacted list through the preload bridge. The main Electron process remains the enforcement and persistence boundary.
 
 ## Promotion plan
 
 1. Define and test the policy/receipt contract with no behavior change to existing desktop actions.
 2. Add bounded local receipt persistence and a status that distinguishes dispatch from verified success. **Done in this branch.**
-3. Wrap `launch_app` and `run_routine` first; these are low-risk and make good instrumentation targets.
-4. Add a read-only history UI fed by main-process IPC.
+3. Wrap `launch_app` and `run_routine` first; these are low-risk and make good instrumentation targets. **Done in this branch.**
+4. Add a read-only history UI fed by main-process IPC. **Done in this branch.**
 5. Route `capture_screen` and `save_document` through explicit confirmation gates.
 6. Only then expand the model/tool surface to communication, browser form submission or file mutation.
 
@@ -104,8 +104,8 @@ Do not let renderer UI decide the security classification. The main Electron pro
 
 - `tests/action-policy.test.cjs` covers normalization, low-risk actions, confirmation-gated actions, blocked actions, unknown-action fallback and local-path redaction.
 - `tests/action-receipt-store.test.cjs` covers persistence, ordering, bounded history, corrupted data, invalid append payloads and clearing history.
-
-The store is intentionally not wired into live IPC yet. That keeps this increment reversible and prevents persistence changes from silently changing current Lumi behavior before local Windows validation.
+- `tests/action-executor.test.cjs` proves that blocked or unconfirmed actions never reach their dispatcher and that success/failure lifecycles are recorded.
+- `tests/action-activity.test.cjs` verifies the read-only bridge, explicit UI states and safe text rendering.
 
 ## Estado de integração
 
@@ -115,5 +115,7 @@ O contrato já participa de dois caminhos nativos reais:
 - executar uma rotina de aplicativos autorizados.
 
 Cada tentativa registra localmente despacho e resultado, sem guardar caminhos absolutos. A interface isolada do renderer pode consultar os recibos recentes por `list_action_receipts(limit)`. O histórico fica limitado a 200 eventos e uma falha no armazenamento impede silenciosamente que uma ação seja apresentada como auditada quando não foi.
+
+Configurações agora inclui a página **Atividade**, com resumo, estado vazio, indisponibilidade web, falhas destacadas e uma linha do tempo dos 30 eventos mais recentes. A interface nunca injeta o conteúdo do recibo como HTML.
 
 Captura de tela, salvamento de documentos e outras ações de confirmação continuam fora do executor por enquanto. Elas só devem ser conectadas quando a interface tiver uma etapa de consentimento explícita e testável.

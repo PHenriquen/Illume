@@ -1,10 +1,10 @@
-# Lumi
+# ILLume
 
-Lumi is a Windows desktop assistant I built to experiment with local AI, automation and desktop integration without giving the model unrestricted access to the system.
+**ILLume** is a Windows desktop assistant built to explore local AI, automation and desktop integration without giving the model unrestricted access to the system.
 
 The project uses an Electron/TypeScript interface with a Python backend, SQLite for local data and Ollama as the default local model provider.
 
-> **Status:** v1.0.2 — active development. The main flows work on my machine, but I am still cleaning up legacy identifiers and testing the installer on clean Windows environments.
+> **Status:** v1.0.2 — active development. The main flows work on my machine, while the public identity is being consolidated under the ILLume name.
 
 ## What works today
 
@@ -21,7 +21,7 @@ The project uses an Electron/TypeScript interface with a Python backend, SQLite 
 ## Project structure
 
 ```text
-Lumi/
+ILLume/
 ├── src/          # TypeScript renderer and UI controllers
 ├── desktop/      # Electron process, preload bridge and Windows integration
 ├── backend/      # Python services, HTTP server, memory and model integration
@@ -59,19 +59,21 @@ If you are reviewing the project, these files show the main parts of the impleme
 
 ### Keep system actions explicit
 
-I did not want model text to execute arbitrary shell commands. App launches and other native actions use explicit handlers, approved resources and execution results.
+Model output should not execute arbitrary shell commands. App launches and other native actions use explicit handlers, approved resources and execution results.
 
 ### Keep user data local by default
 
 Conversation history and application data are stored locally. Ollama is the default model path, so the basic project does not depend on a remote model API.
 
-### Migrate legacy names gradually
+### Preserve compatibility while the identity changes
 
-Lumi was previously called **Noa** and originally evolved from an earlier prototype called **TRACE**. Some old names still exist in IPC channels, storage keys, packaging paths and migration code. I am replacing them gradually because a global rename can break local data and packaged builds. New public-facing code should use Lumi while legacy identifiers remain only where compatibility still requires them.
+ILLume evolved through earlier prototypes and working names including **Lumi**, **Noa** and **TRACE**. Some legacy identifiers still exist in IPC channels, storage keys, packaging paths and migration code.
+
+Public-facing references should use **ILLume**. Internal legacy identifiers are being replaced gradually where doing so does not risk breaking local data or packaged builds.
 
 ### Split code when it has a reason to change separately
 
-The frontend is already separated into chat, audio, speech, apps, system and runtime modules. `backend/app.py` is still larger than I want, so the next backend cleanup is to extract model, memory and document responsibilities one at a time instead of creating folders only to make the tree look more complex.
+The frontend is already separated into chat, audio, speech, apps, system and runtime modules. `backend/app.py` is still larger than intended, so backend responsibilities are being extracted incrementally.
 
 ## Stack
 
@@ -84,8 +86,6 @@ The frontend is already separated into chat, audio, speech, apps, system and run
 | Local AI | Ollama / Qwen |
 | Voice | Whisper.cpp, Piper, Windows speech APIs |
 | Tests | Node Test Runner, Python `unittest` |
-
-There are also small ML/C++ experiments under `native/` and `backend/`, but they are not required by the main application.
 
 ## Running locally
 
@@ -118,16 +118,15 @@ npm test
 python -m unittest discover -s backend/tests -p "test_*.py"
 ```
 
-The tests currently cover architecture rules, app resolution, migration compatibility and the permission/audit module.
+## Current direction
 
-## Current cleanup
+The current priorities are:
 
-The main things I am working on now are:
-
-- completing the Lumi rebrand without breaking Noa/TRACE compatibility data;
+- completing the ILLume public rebrand without breaking compatibility data;
 - separating responsibilities from `backend/app.py`;
-- making voice capture/interruption easier to reason about;
+- improving voice capture and interruption handling;
 - testing install/package flows on a clean Windows environment;
-- moving permission checks into more native action paths.
+- expanding permission checks across native actions;
+- preparing ILLume to become the intelligence layer for future physical-computing projects in the Zypher ecosystem.
 
 More technical notes are in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) and [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md).

@@ -24,6 +24,8 @@ export const micLevelBar = $<HTMLElement>("#mic-level-bar"), micStatus = $("#mic
 
 export const attachmentList = $("#attachment-list"), permissionFiles = $<HTMLInputElement>("#permission-files"), permissionImages = $<HTMLInputElement>("#permission-images"), permissionScreen = $<HTMLInputElement>("#permission-screen"), permissionApps = $<HTMLInputElement>("#permission-apps"), permissionEdits = $<HTMLInputElement>("#permission-edits");
 
+export const activityList = $("#activity-list"), activitySummary = $("#activity-summary"), activityStatus = $("#activity-status");
+
 export const approvalMode = $<HTMLSelectElement>("#approval-mode"), sensitivityRange = $<HTMLInputElement>("#sensitivity-range"), bargeInToggle = $<HTMLInputElement>("#barge-in-toggle"), voiceProfile = $<HTMLSelectElement>("#voice-profile"), systemVoiceChoice = $<HTMLSelectElement>("#system-voice-choice"), responseMode = $<HTMLSelectElement>("#response-mode"), responseStyle = $<HTMLSelectElement>("#response-style"), userName = $<HTMLInputElement>("#user-name"), intelligenceProfile = $<HTMLSelectElement>("#intelligence-profile");
 
 export const startupToggle = $<HTMLInputElement>("#startup-toggle");
@@ -111,6 +113,7 @@ export type Controllers = {
   speech: typeof import("./speech").speechController;
   system: typeof import("./system").systemController;
   apps: typeof import("./apps").appsController;
+  activity: typeof import("./activity").activityController;
 };
 
 export const controllers = {} as Controllers;

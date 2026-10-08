@@ -32,6 +32,7 @@ const nativeApi = {
     save_routine: (data) => ipcRenderer.invoke('trace:save-routine', data),
     delete_routine: (name) => ipcRenderer.invoke('trace:delete-routine', name),
     run_routine: (query) => ipcRenderer.invoke('trace:run-routine', query),
+    list_action_receipts: (limit = 25) => ipcRenderer.invoke('trace:list-action-receipts', limit),
     report_mic: (level, status) => ipcRenderer.invoke('trace:mic-level', { level, status }),
     on_mic: callback => ipcRenderer.on('trace:mic-level', (_event, data) => callback(data)),
     broadcast: data => ipcRenderer.invoke('trace:broadcast', data),

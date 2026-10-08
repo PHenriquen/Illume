@@ -26,6 +26,35 @@ export type Routine = {
     apps: string[];
 };
 
+export type ActionReceipt = {
+    id: string;
+    timestamp: string;
+    action: string;
+    status: "planned" | "approved" | "dispatched" | "succeeded" | "failed" | "cancelled" | "blocked";
+    risk: "passive" | "low" | "confirm" | "blocked";
+    confirmationRequired: boolean;
+    source: string;
+    target: string;
+    detail: string;
+};
+
+export type NativeActionFailure =
+    | "confirmation_required"
+    | "confirmation_failed"
+    | "cancelled"
+    | "capture_failed"
+    | "save_failed"
+    | "action_failed";
+
+export type NativeActionResult<T = never> = {
+    ok: true;
+    value?: T;
+} | {
+    ok: false;
+    reason: NativeActionFailure;
+    detail?: string;
+};
+
 export type MicReport = {
     level: number;
     status?: string;
@@ -59,7 +88,7 @@ export type NativeApi = {
     toggle_compact_visibility?: () => Promise<boolean>;
     wake_compact?: () => Promise<boolean>;
     sleep_assistant?: () => Promise<boolean>;
-    capture_screen?: () => Promise<Attachment | null>;
+    capture_screen?: () => Promise<NativeActionResult<Attachment>>;
     generate_diagnostic?: () => Promise<boolean>;
     calibrate_claps?: () => Promise<boolean>;
     reset_claps?: () => Promise<boolean>;
@@ -74,7 +103,7 @@ export type NativeApi = {
         format: "pdf" | "docx" | "txt";
         text: string;
         bytes?: string;
-    }) => Promise<boolean>;
+    }) => Promise<NativeActionResult>;
     select_app?: () => Promise<{
         name: string;
     } | null>;
@@ -97,6 +126,7 @@ export type NativeApi = {
         name?: string;
         opened?: string[];
     }>;
+    list_action_receipts?: (limit?: number) => Promise<ActionReceipt[]>;
     report_mic?: (level: number, status?: string) => Promise<boolean>;
     on_mic?: (callback: (data: MicReport) => void) => void;
     broadcast?: (data: SharedEvent) => Promise<boolean>;
@@ -127,7 +157,7 @@ declare global {
 
 export type NativeCommand = "expand_overlay" | "show_orb" | "collapse_overlay" | "show_dashboard" | "enter_compact" | "toggle_compact" | "toggle_wake" | "toggle_compact_visibility" | "wake_compact" | "sleep_assistant";
 
-export type SettingsPage = "general" | "voice" | "permissions" | "apps" | "system";
+export type SettingsPage = "general" | "voice" | "permissions" | "activity" | "apps" | "system";
 
 export type Health = {
     ollama: boolean;
